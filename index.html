@@ -1662,6 +1662,7 @@ async function login() {
 
 function logout() {
     if (confirm('Yakin mau logout?')) {
+        if (overtimeUnsubscribe) { overtimeUnsubscribe(); overtimeUnsubscribe = null; }
         saveToCloud().then(() => auth.signOut());
     }
 }
@@ -1816,6 +1817,7 @@ function initApp() {
     renderDashboard();
     renderWallets();
     updateOvertimeSyncStatus();
+    startOvertimeListener();
     renderCalendar();
     renderReport();
     loadTransactions();
@@ -2486,7 +2488,34 @@ function saveOvertimeSetup() {
     closeModal('overtimeSetupModal');
     updateOvertimeSyncStatus();
     autoSave();
+    startOvertimeListener();
+    syncOvertime();
     showToast('Sync Lembur terhubung! ✅', 'success');
+}
+
+let overtimeUnsubscribe = null;
+
+function startOvertimeListener() {
+    // Stop existing listener
+    if (overtimeUnsubscribe) { overtimeUnsubscribe(); overtimeUnsubscribe = null; }
+
+    const uid = userData.overtimeUid;
+    if (!uid) return;
+
+    try {
+        overtimeUnsubscribe = overtimeDb.collection('users').doc(uid)
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    console.log('Overtime data changed, auto-syncing...');
+                    syncOvertime();
+                }
+            }, (error) => {
+                console.error('Overtime listener error:', error);
+            });
+        console.log('Overtime real-time listener started for:', uid.substring(0, 8) + '...');
+    } catch (e) {
+        console.error('Failed to start overtime listener:', e);
+    }
 }
 
 function updateOvertimeSyncStatus() {
@@ -2494,7 +2523,7 @@ function updateOvertimeSyncStatus() {
     const syncBtn = document.getElementById('otSyncBtn');
     if (userData.overtimeUid && userData.overtimeWalletId) {
         const wallet = userData.wallets.find(w => w.id === userData.overtimeWalletId);
-        statusEl.textContent = `Terhubung ke User: ${userData.overtimeUid.substring(0, 8)}... → ${wallet ? wallet.icon + ' ' + wallet.name : '?'}`;
+        statusEl.textContent = `✅ Terhubung → ${wallet ? wallet.icon+' '+wallet.name : '?'} | Auto-sync aktif`;
         statusEl.style.color = 'var(--primary)';
         syncBtn.disabled = false;
     } else {
