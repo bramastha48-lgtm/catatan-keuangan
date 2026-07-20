@@ -1144,6 +1144,9 @@
                 <button class="btn btn-outline" onclick="setupOvertimeSync()" style="flex:1" id="otSetupBtn">
                     ⚙️ Setup
                 </button>
+                <button class="btn btn-outline" onclick="resetOvertimeSync()" style="flex:0" id="otResetBtn" title="Reset & sync ulang">
+                    🔄
+                </button>
                 <button class="btn btn-primary" onclick="syncOvertime()" style="flex:1" id="otSyncBtn" disabled>
                     🔄 Sync Sekarang
                 </button>
@@ -2499,6 +2502,31 @@ function updateOvertimeSyncStatus() {
         statusEl.style.color = 'var(--gray-400)';
         syncBtn.disabled = true;
     }
+}
+
+async function resetOvertimeSync() {
+    if (!confirm('Hapus semua data lembur yang sudah di-sync dan tarik ulang?')) return;
+
+    // Delete existing overtime-synced transactions
+    const otTxIds = userData.transactions.filter(t => t.source === 'overtime_sync').map(t => t.id);
+    for (const id of otTxIds) {
+        const tx = userData.transactions.find(t => t.id === id);
+        if (tx) {
+            const wallet = userData.wallets.find(w => w.id === tx.walletId);
+            if (wallet) wallet.balance -= tx.amount; // reverse balance
+        }
+    }
+    userData.transactions = userData.transactions.filter(t => t.source !== 'overtime_sync');
+    userData.syncedOvertimePayouts = [];
+
+    showToast('Data lembur lama dihapus. Sync ulang...', '');
+    renderDashboard();
+    renderWallets();
+    loadTransactions();
+    await autoSave();
+
+    // Auto re-sync
+    await syncOvertime();
 }
 
 async function syncOvertime() {
