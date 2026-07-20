@@ -1196,7 +1196,7 @@
 
         <div class="form-group">
             <label>Jumlah (Rp)</label>
-            <input type="number" id="txAmount" placeholder="0" inputmode="numeric">
+            <input type="text" id="txAmount" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
         </div>
 
         <div class="form-group">
@@ -1243,7 +1243,7 @@
 
         <div class="form-group">
             <label>Saldo Awal (Rp)</label>
-            <input type="number" id="walletBalance" placeholder="0" inputmode="numeric">
+            <input type="text" id="walletBalance" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
         </div>
 
         <div class="form-group">
@@ -1684,7 +1684,7 @@ function loadWalletOptions() {
 }
 
 async function saveTransaction() {
-    const amount = parseInt(document.getElementById('txAmount').value);
+    const amount = parseFormattedNumber(document.getElementById('txAmount').value);
     const note = document.getElementById('txNote').value.trim();
     const date = document.getElementById('txDate').value;
     const walletId = document.getElementById('txWallet').value;
@@ -1864,7 +1864,7 @@ function selectWalletIcon(el, icon) {
 
 async function saveWallet() {
     const name = document.getElementById('walletName').value.trim();
-    const balance = parseInt(document.getElementById('walletBalance').value) || 0;
+    const balance = parseFormattedNumber(document.getElementById('walletBalance').value) || 0;
 
     if (!name) {
         showToast('Masukkan nama wallet', 'error');
@@ -2190,6 +2190,16 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ==================== UTILITY FUNCTIONS ====================
+function formatInputNumber(input) {
+    let val = input.value.replace(/[^\d]/g, '');
+    if (val === '') { input.value = ''; return; }
+    input.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function parseFormattedNumber(str) {
+    return parseInt(str.replace(/[^\d]/g, '')) || 0;
+}
+
 function formatMoney(amount) {
     const sym = userData.currency === 'IDR' ? 'Rp ' : userData.currency === 'USD' ? '$ ' : userData.currency + ' ';
     return sym + Math.abs(amount).toLocaleString('id-ID');
