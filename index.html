@@ -1409,6 +1409,56 @@
     </div>
 </div>
 
+<!-- Edit Transaction Modal -->
+<div id="editTxModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>✏️ Edit Transaksi</h3>
+            <button class="modal-close" onclick="closeModal('editTxModal')">✕</button>
+        </div>
+
+        <input type="hidden" id="editTxId">
+
+        <div class="form-group">
+            <label>Tipe</label>
+            <div class="tab-group">
+                <button type="button" class="tab-btn income-tab" id="editTxTypeIncome" onclick="setEditTxType('income')">📥 Pemasukan</button>
+                <button type="button" class="tab-btn expense-tab" id="editTxTypeExpense" onclick="setEditTxType('expense')">📤 Pengeluaran</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Jumlah (Rp)</label>
+            <input type="text" id="editTxAmount" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
+        </div>
+
+        <div class="form-group">
+            <label>Kategori</label>
+            <div class="category-grid" id="editCategoryGrid"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="editTxNote" placeholder="Keterangan">
+        </div>
+
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="editTxDate">
+        </div>
+
+        <div class="form-group">
+            <label>Wallet</label>
+            <select id="editTxWallet"></select>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-danger" onclick="deleteEditedTx()" style="flex:0">🗑️</button>
+            <button class="btn btn-primary" onclick="saveEditTx()" style="flex:1">💾 Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal-overlay">
     <div class="modal">
@@ -2007,7 +2057,7 @@ function loadTransactions() {
                 subLabel = `${wf ? wf.icon+' '+wf.name : '?'} → ${wt ? wt.icon+' '+wt.name : '?'}`;
             }
             html += `
-                <div class="transaction-item" onclick="deleteTransaction('${tx.id}')" style="cursor:pointer" title="Klik untuk hapus">
+                <div class="transaction-item" onclick="openEditTx('${tx.id}')" style="cursor:pointer" title="Klik untuk edit">
                     <div class="transaction-icon" style="background:${cat.color}20">
                         ${cat.icon}
                     </div>
@@ -2061,6 +2111,107 @@ async function deleteTransaction(id) {
     loadTransactions();
     renderDashboard();
     autoSave();
+}
+
+// ==================== EDIT TRANSACTION ====================
+let editTxType = 'income';
+let editTxCategory = '';
+
+function openEditTx(id) {
+    const tx = userData.transactions.find(t => t.id === id);
+    if (!tx) return;
+
+    document.getElementById('editTxId').value = tx.id;
+    document.getElementById('editTxAmount').value = tx.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    document.getElementById('editTxNote').value = tx.note || '';
+    document.getElementById('editTxDate').value = tx.date;
+
+    // Set type
+    editTxType = tx.type === 'transfer' ? 'income' : tx.type;
+    editTxCategory = tx.category;
+    document.getElementById('editTxTypeIncome').classList.toggle('active', editTxType === 'income');
+    document.getElementById('editTxTypeExpense').classList.toggle('active', editTxType === 'expense');
+
+    // Populate wallet select
+    const walletSelect = document.getElementById('editTxWallet');
+    walletSelect.innerHTML = userData.wallets.map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+    if (tx.walletId) walletSelect.value = tx.walletId;
+
+    // Render category grid
+    renderEditCategoryGrid();
+
+    openModal('editTxModal');
+}
+
+function setEditTxType(type) {
+    editTxType = type;
+    editTxCategory = '';
+    document.getElementById('editTxTypeIncome').classList.toggle('active', type === 'income');
+    document.getElementById('editTxTypeExpense').classList.toggle('active', type === 'expense');
+    renderEditCategoryGrid();
+}
+
+function renderEditCategoryGrid() {
+    const cats = categories[editTxType];
+    const grid = document.getElementById('editCategoryGrid');
+    grid.innerHTML = cats.map(c => `
+        <div class="category-tag ${editTxCategory === c.id ? 'selected' : ''}" 
+             onclick="editTxCategory='${c.id}';renderEditCategoryGrid()">
+            <span class="icon">${c.icon}</span>
+            <span class="label">${c.label}</span>
+        </div>
+    `).join('');
+}
+
+function saveEditTx() {
+    const id = document.getElementById('editTxId').value;
+    const tx = userData.transactions.find(t => t.id === id);
+    if (!tx) { showToast('Transaksi tidak ditemukan', 'error'); return; }
+
+    const newAmount = parseFormattedNumber(document.getElementById('editTxAmount').value);
+    const newNote = document.getElementById('editTxNote').value.trim();
+    const newDate = document.getElementById('editTxDate').value;
+    const newWalletId = document.getElementById('editTxWallet').value;
+
+    if (!newAmount || newAmount <= 0) { showToast('Masukkan jumlah yang valid', 'error'); return; }
+    if (!editTxCategory) { showToast('Pilih kategori', 'error'); return; }
+    if (!newWalletId) { showToast('Pilih wallet', 'error'); return; }
+
+    // Reverse old wallet balance
+    const oldWallet = userData.wallets.find(w => w.id === tx.walletId);
+    if (oldWallet) {
+        if (tx.type === 'income') oldWallet.balance -= tx.amount;
+        else oldWallet.balance += tx.amount;
+    }
+
+    // Apply new values
+    tx.type = editTxType;
+    tx.amount = newAmount;
+    tx.category = editTxCategory;
+    tx.note = newNote;
+    tx.date = newDate;
+    tx.walletId = newWalletId;
+    delete tx.source; // remove overtime sync marker so it's treated as manual
+
+    // Apply new wallet balance
+    const newWallet = userData.wallets.find(w => w.id === newWalletId);
+    if (newWallet) {
+        if (editTxType === 'income') newWallet.balance += newAmount;
+        else newWallet.balance -= newAmount;
+    }
+
+    closeModal('editTxModal');
+    showToast('Transaksi diperbarui! ✅', 'success');
+    loadTransactions();
+    renderDashboard();
+    renderWallets();
+    autoSave();
+}
+
+function deleteEditedTx() {
+    const id = document.getElementById('editTxId').value;
+    closeModal('editTxModal');
+    deleteTransaction(id);
 }
 
 // ==================== WALLETS ====================
