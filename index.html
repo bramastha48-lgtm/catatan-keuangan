@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walletly - Money Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --primary-light: #D1FAE5;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
+            --blue: #3B82F6;
+            --blue-light: #DBEAFE;
+            --purple: #8B5CF6;
+            --purple-light: #EDE9FE;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* Auth Screen */
+        .auth-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-logo .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .auth-logo h1 {
+            font-size: 28px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .auth-logo p {
+            color: var(--gray-500);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            transition: border-color 0.2s;
+            outline: none;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+            width: auto;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .auth-toggle a {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header */
+        .app-header {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h2 {
+            font-size: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: var(--gray-100);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .header-btn:hover {
+            background: var(--gray-200);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            color: var(--gray-400);
+            font-size: 11px;
+            font-weight: 500;
+            transition: color 0.2s;
+            border: none;
+            background: none;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-500);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .balance-item {
+            text-align: center;
+        }
+
+        .balance-item .label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .balance-item .amount {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Transaction List */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-info .name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .transaction-info .category {
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-top: 2px;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 15px;
+            text-align: right;
+        }
+
+        .transaction-amount.income {
+            color: var(--primary);
+        }
+
+        .transaction-amount.expense {
+            color: var(--danger);
+        }
+
+        .transaction-date {
+            font-size: 11px;
+            color: var(--gray-400);
+            text-align: right;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .quick-action {
+            background: white;
+            border-radius: var(--radius);
+            padding: 16px 8px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .quick-action .icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .quick-action .label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-600);
+        }
+
+        /* Category Tags */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .category-tag {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 4px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            background: var(--gray-50);
+        }
+
+        .category-tag:hover, .category-tag.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .category-tag .icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .category-tag .label {
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            color: var(--gray-600);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: var(--gray-100);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Tab Buttons */
+        .tab-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--gray-200);
+            background: white;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .tab-btn.income-tab.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .tab-btn.expense-tab.active {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        /* Wallet Card */
+        .wallet-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .wallet-item:hover, .wallet-item.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .wallet-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-right: 14px;
+        }
+
+        .wallet-info .name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .wallet-info .balance {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .calendar-header-cell {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-400);
+            padding: 8px 0;
+        }
+
+        .calendar-cell {
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+            min-height: 50px;
+        }
+
+        .calendar-cell:hover {
+            background: var(--gray-100);
+        }
+
+        .calendar-cell.today {
+            background: var(--primary-light);
+            font-weight: 700;
+        }
+
+        .calendar-cell.has-data .dot {
+            display: block;
+        }
+
+        .calendar-cell .date-num {
+            font-weight: 500;
+        }
+
+        .calendar-cell .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            margin: 4px auto 0;
+            display: none;
+        }
+
+        .calendar-cell .day-amount {
+            font-size: 9px;
+            color: var(--gray-500);
+            margin-top: 2px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .calendar-nav .month-label {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .calendar-nav button {
+            background: var(--gray-100);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Report Chart */
+        .chart-bar-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 150px;
+            padding: 0 4px;
+            margin-top: 12px;
+        }
+
+        .chart-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 30px;
+            border-radius: 6px 6px 0 0;
+            transition: height 0.5s ease;
+            min-height: 4px;
+        }
+
+        .chart-bar.income-bar {
+            background: var(--primary);
+        }
+
+        .chart-bar.expense-bar {
+            background: var(--danger);
+        }
+
+        .chart-label {
+            font-size: 10px;
+            color: var(--gray-400);
+            margin-top: 6px;
+        }
+
+        /* Settings */
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item .label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .settings-item .label .icon {
+            font-size: 20px;
+        }
+
+        .settings-item .arrow {
+            color: var(--gray-400);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--gray-800);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 300;
+            transition: transform 0.3s ease;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: var(--primary);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-400);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Recurring Badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge-recurring {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        /* Chart Legend */
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Category Report */
+        .category-report-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .category-report-item:last-child {
+            border-bottom: none;
+        }
+
+        .category-report-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .category-report-info {
+            flex: 1;
+        }
+
+        .category-report-info .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .category-report-bar {
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .category-report-bar .fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .category-report-amount {
+            font-weight: 600;
+            font-size: 14px;
+            margin-left: 12px;
+        }
+
+        .category-report-percent {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-left: 12px;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        /* Responsive */
+        @media (min-width: 500px) {
+            body {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+            .bottom-nav {
+                max-width: 500px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .app-header {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<!-- ==================== AUTH SCREEN ==================== -->
+<div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="icon">💰</div>
+            <h1>Walletly</h1>
+            <p>Kelola keuanganmu dengan mudah</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="nama@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan password">
+            </div>
+            <button class="btn btn-primary" onclick="login()">🔑 Login</button>
+            <div class="auth-toggle">
+                Belum punya akun? <a onclick="showRegister()">Daftar</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" style="display:none">
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="regName" placeholder="Nama kamu">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="regEmail" placeholder="nama@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="Min. 6 karakter">
+            </div>
+            <button class="btn btn-primary" onclick="register()">📝 Daftar</button>
+            <div class="auth-toggle">
+                Sudah punya akun? <a onclick="showLogin()">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="mainApp" style="display:none">
+
+    <!-- Header -->
+    <div class="app-header">
+        <h2>💰 Walletly</h2>
+        <div class="header-actions">
+            <button class="header-btn" onclick="syncData()" title="Sync data">☁️</button>
+            <button class="header-btn" onclick="logout()" title="Logout">🚪</button>
+        </div>
+    </div>
+
+    <!-- ========== PAGE: DASHBOARD ========== -->
+    <div id="pageDashboard" class="page active">
+        <div class="balance-card">
+            <div class="balance-label">Total Saldo</div>
+            <div class="balance-amount" id="totalBalance">Rp 0</div>
+            <div class="balance-row">
+                <div class="balance-item">
+                    <div class="label">📥 Pemasukan</div>
+                    <div class="amount" id="totalIncome">Rp 0</div>
+                </div>
+                <div class="balance-item">
+                    <div class="label">📤 Pengeluaran</div>
+                    <div class="amount" id="totalExpense">Rp 0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="quick-action" onclick="openAddTransaction('income')">
+                <div class="icon">📥</div>
+                <div class="label">Pemasukan</div>
+            </button>
+            <button class="quick-action" onclick="openAddTransaction('expense')">
+                <div class="icon">📤</div>
+                <div class="label">Pengeluaran</div>
+            </button>
+            <button class="quick-action" onclick="switchPage('wallet')">
+                <div class="icon">👛</div>
+                <div class="label">Wallet</div>
+            </button>
+            <button class="quick-action" onclick="switchPage('report')">
+                <div class="icon">📊</div>
+                <div class="label">Laporan</div>
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Transaksi Terakhir</div>
+            <div id="recentTransactions">
+                <div class="empty-state">
+                    <div class="icon">📝</div>
+                    <p>Belum ada transaksi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PAGE: TRANSACTIONS ========== -->
+    <div id="pageTransactions" class="page">
+        <div class="card">
+            <div class="card-title">📅 Filter</div>
+            <div style="display:flex;gap:8px;">
+                <select id="filterMonth" onchange="loadTransactions()" style="flex:1;padding:10px;border:2px solid var(--gray-200);border-radius:8px;font-size:14px;">
+                    <option value="0">Januari</option>
+                    <option value="1">Februari</option>
+                    <option value="2">Maret</option>
+                    <option value="3">April</option>
+                    <option value="4">Mei</option>
+                    <option value="5">Juni</option>
+                    <option value="6">Juli</option>
+                    <option value="7">Agustus</option>
+                    <option value="8">September</option>
+                    <option value="9">Oktober</option>
+                    <option value="10">November</option>
+                    <option value="11">Desember</option>
+                </select>
+                <select id="filterYear" onchange="loadTransactions()" style="flex:1;padding:10px;border:2px solid var(--gray-200);border-radius:8px;font-size:14px;">
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Semua Transaksi</div>
+            <div id="allTransactions">
+                <div class="empty-state">
+                    <div class="icon">📝</div>
+                    <p>Belum ada transaksi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PAGE: WALLET ========== -->
+    <div id="pageWallet" class="page">
+        <div class="balance-card">
+            <div class="balance-label">Total Saldo Semua Wallet</div>
+            <div class="balance-amount" id="walletTotalBalance">Rp 0</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">👛 Daftar Wallet</div>
+            <div id="walletList"></div>
+            <button class="btn btn-outline" onclick="openAddWallet()" style="margin-top:12px">
+                ➕ Tambah Wallet
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== PAGE: CALENDAR ========== -->
+    <div id="pageCalendar" class="page">
+        <div class="card">
+            <div class="calendar-nav">
+                <button onclick="changeMonth(-1)">◀</button>
+                <span class="month-label" id="calendarMonthLabel">Juli 2026</span>
+                <button onclick="changeMonth(1)">▶</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="card" id="calendarDetail" style="display:none">
+            <div class="card-title" id="calendarDetailTitle">📅 Detail Hari</div>
+            <div id="calendarDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- ========== PAGE: REPORT ========== -->
+    <div id="pageReport" class="page">
+        <div class="card">
+            <div class="card-title">📊 Grafik Bulanan</div>
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="setReportView('6month', this)">6 Bulan</button>
+                <button class="tab-btn" onclick="setReportView('12month', this)">12 Bulan</button>
+            </div>
+            <div class="chart-bar-container" id="reportChart"></div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--primary)"></div>
+                    Pemasukan
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--danger)"></div>
+                    Pengeluaran
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📂 Pengeluaran per Kategori</div>
+            <div id="categoryReport"></div>
+        </div>
+    </div>
+
+    <!-- ========== PAGE: SETTINGS ========== -->
+    <div id="pageSettings" class="page">
+        <div class="card">
+            <div class="card-title">👤 Akun</div>
+            <div class="settings-item">
+                <div class="label"><span class="icon">📧</span> <span id="userEmail">-</span></div>
+            </div>
+            <div class="settings-item">
+                <div class="label"><span class="icon">👤</span> <span id="userName">-</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">⚙️ Pengaturan</div>
+            <div class="settings-item" onclick="openEditProfile()" style="cursor:pointer">
+                <div class="label"><span class="icon">✏️</span> Edit Profil</div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="settings-item" onclick="exportData()" style="cursor:pointer">
+                <div class="label"><span class="icon">📤</span> Export Data (JSON)</div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="settings-item" onclick="syncData()" style="cursor:pointer">
+                <div class="label"><span class="icon">☁️</span> Sync ke Cloud</div>
+                <div class="arrow">›</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🗑️ Zona Bahaya</div>
+            <button class="btn btn-danger" onclick="confirmReset()">
+                🗑️ Reset Semua Data
+            </button>
+            <p style="font-size:12px;color:var(--gray-400);margin-top:8px;text-align:center;">
+                Data di Firebase tetap aman, hanya data lokal yang direset
+            </p>
+        </div>
+
+        <div class="card" style="text-align:center">
+            <button class="btn btn-outline" onclick="logout()" style="color:var(--danger);border-color:var(--danger)">
+                🚪 Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchPage('dashboard')">
+            <span class="nav-icon">📊</span>
+            Dashboard
+        </button>
+        <button class="nav-item" onclick="switchPage('transactions')">
+            <span class="nav-icon">📋</span>
+            Transaksi
+        </button>
+        <button class="nav-item" onclick="switchPage('wallet')">
+            <span class="nav-icon">👛</span>
+            Wallet
+        </button>
+        <button class="nav-item" onclick="switchPage('calendar')">
+            <span class="nav-icon">📅</span>
+            Kalender
+        </button>
+        <button class="nav-item" onclick="switchPage('settings')">
+            <span class="nav-icon">⚙️</span>
+            Lainnya
+        </button>
+    </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Add Transaction Modal -->
+<div id="addTransactionModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>➕ Transaksi Baru</h3>
+            <button class="modal-close" onclick="closeModal('addTransactionModal')">✕</button>
+        </div>
+
+        <div class="tab-group">
+            <button class="tab-btn income-tab active" onclick="setTransactionType('income')">📥 Pemasukan</button>
+            <button class="tab-btn expense-tab" onclick="setTransactionType('expense')">📤 Pengeluaran</button>
+        </div>
+
+        <div class="form-group">
+            <label>Jumlah (Rp)</label>
+            <input type="number" id="txAmount" placeholder="0" inputmode="numeric">
+        </div>
+
+        <div class="form-group">
+            <label>Kategori</label>
+            <div class="category-grid" id="categoryGrid"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="txNote" placeholder="Contoh: Makan siang">
+        </div>
+
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="txDate">
+        </div>
+
+        <div class="form-group">
+            <label>Wallet</label>
+            <select id="txWallet"></select>
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="txRecurring">
+            <label for="txRecurring" style="margin:0;cursor:pointer">🔁 Transaksi Berulang (Bulanan)</label>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveTransaction()">💾 Simpan Transaksi</button>
+    </div>
+</div>
+
+<!-- Add Wallet Modal -->
+<div id="addWalletModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>➕ Tambah Wallet</h3>
+            <button class="modal-close" onclick="closeModal('addWalletModal')">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Wallet</label>
+            <input type="text" id="walletName" placeholder="Contoh: BCA, GoPay, Cash">
+        </div>
+
+        <div class="form-group">
+            <label>Saldo Awal (Rp)</label>
+            <input type="number" id="walletBalance" placeholder="0" inputmode="numeric">
+        </div>
+
+        <div class="form-group">
+            <label>Ikon</label>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <span class="category-tag selected" onclick="selectWalletIcon(this, '💰')" data-icon="💰"><span class="icon">💰</span></span>
+                <span class="category-tag" onclick="selectWalletIcon(this, '🏦')" data-icon="🏦"><span class="icon">🏦</span></span>
+                <span class="category-tag" onclick="selectWalletIcon(this, '💳')" data-icon="💳"><span class="icon">💳</span></span>
+                <span class="category-tag" onclick="selectWalletIcon(this, '👛')" data-icon="👛"><span class="icon">👛</span></span>
+                <span class="category-tag" onclick="selectWalletIcon(this, '📱')" data-icon="📱"><span class="icon">📱</span></span>
+                <span class="category-tag" onclick="selectWalletIcon(this, '🪙')" data-icon="🪙"><span class="icon">🪙</span></span>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveWallet()">💾 Simpan Wallet</button>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>✏️ Edit Profil</h3>
+            <button class="modal-close" onclick="closeModal('editProfileModal')">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label>Nama</label>
+            <input type="text" id="editName">
+        </div>
+
+        <div class="form-group">
+            <label>Mata Uang</label>
+            <select id="editCurrency">
+                <option value="IDR">Rupiah (IDR)</option>
+                <option value="USD">Dollar (USD)</option>
+                <option value="MYR">Ringgit (MYR)</option>
+                <option value="SGD">Dollar Singapura (SGD)</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveProfile()">💾 Simpan Profil</button>
+    </div>
+</div>
+
+<!-- ==================== FIREBASE SDK ==================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ==================== FIREBASE CONFIG ====================
+// ⚠️ GANTI DENGAN CONFIG KAMU SENDIRI DARI FIREBASE CONSOLE
+const firebaseConfig = {
+    apiKey: "AIzaSyCWVQqhcDQsan4XA2yNBjNOPC1FRsfVEcg",
+    authDomain: "catatan-keuangan-9fb94.firebaseapp.com",
+    projectId: "catatan-keuangan-9fb94",
+    storageBucket: "catatan-keuangan-9fb94.firebasestorage.app",
+    messagingSenderId: "809772613006",
+    appId: "1:809772613006:web:5d233083391438983738df"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ==================== GLOBAL STATE ====================
+let currentUser = null;
+let userData = {
+    name: '',
+    currency: 'IDR',
+    wallets: [],
+    transactions: [],
+    recurring: []
+};
+let selectedWalletIcon = '💰';
+let currentTransactionType = 'income';
+let selectedCategory = '';
+let calendarDate = new Date();
+let reportView = '6month';
+
+// ==================== CATEGORIES ====================
+const categories = {
+    income: [
+        { id: 'salary', icon: '💰', label: 'Gaji', color: '#10B981' },
+        { id: 'bonus', icon: '🎁', label: 'Bonus', color: '#8B5CF6' },
+        { id: 'freelance', icon: '💻', label: 'Freelance', color: '#3B82F6' },
+        { id: 'investment', icon: '📈', label: 'Investasi', color: '#F59E0B' },
+        { id: 'gift', icon: '🎀', label: 'Hadiah', color: '#EC4899' },
+        { id: 'refund', icon: '🔄', label: 'Refund', color: '#6366F1' },
+        { id: 'other_income', icon: '➕', label: 'Lainnya', color: '#6B7280' }
+    ],
+    expense: [
+        { id: 'food', icon: '🍔', label: 'Makan', color: '#EF4444' },
+        { id: 'transport', icon: '🚗', label: 'Transport', color: '#3B82F6' },
+        { id: 'shopping', icon: '🛒', label: 'Belanja', color: '#8B5CF6' },
+        { id: 'bills', icon: '📄', label: 'Tagihan', color: '#F59E0B' },
+        { id: 'entertainment', icon: '🎮', label: 'Hiburan', color: '#EC4899' },
+        { id: 'health', icon: '🏥', label: 'Kesehatan', color: '#10B981' },
+        { id: 'education', icon: '📚', label: 'Pendidikan', color: '#6366F1' },
+        { id: 'rent', icon: '🏠', label: 'Sewa/Kos', color: '#14B8A6' },
+        { id: 'groceries', icon: '🥬', label: 'Belanja Harian', color: '#84CC16' },
+        { id: 'subscrip', icon: '📱', label: 'Langganan', color: '#A855F7' },
+        { id: 'clothes', icon: '👕', label: 'Pakaian', color: '#F97316' },
+        { id: 'gift_exp', icon: '🎁', label: 'Hadiah', color: '#E11D48' },
+        { id: 'pet', icon: '🐾', label: 'Peliharaan', color: '#78716C' },
+        { id: 'other_expense', icon: '📦', label: 'Lainnya', color: '#6B7280' }
+    ]
+};
+
+// ==================== AUTH FUNCTIONS ====================
+function showLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+}
+
+function showRegister() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+}
+
+async function register() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+
+    if (!name || !email || !password) {
+        showToast('Semua field wajib diisi', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showToast('Password minimal 6 karakter', 'error');
+        return;
+    }
+
+    try {
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        await cred.user.updateProfile({ displayName: name });
+
+        // Save user profile to Firestore
+        await db.collection('users').doc(cred.user.uid).set({
+            name: name,
+            email: email,
+            currency: 'IDR',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        showToast('Registrasi berhasil! 🎉', 'success');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        showToast('Email dan password wajib diisi', 'error');
+        return;
+    }
+
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        showToast('Login berhasil! 👋', 'success');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function logout() {
+    if (confirm('Yakin mau logout?')) {
+        saveToCloud().then(() => auth.signOut());
+    }
+}
+
+// ==================== AUTH STATE OBSERVER ====================
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        await loadFromCloud();
+        initApp();
+    } else {
+        currentUser = null;
+        document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+    }
+});
+
+// ==================== FIREBASE DATA ====================
+async function loadFromCloud() {
+    if (!currentUser) return;
+
+    try {
+        // Load user profile
+        const profileDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (profileDoc.exists) {
+            const data = profileDoc.data();
+            userData.name = data.name || currentUser.displayName || '';
+            userData.currency = data.currency || 'IDR';
+        }
+
+        // Load wallets
+        const walletsSnap = await db.collection('users').doc(currentUser.uid).collection('wallets').get();
+        userData.wallets = walletsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Load transactions
+        const txSnap = await db.collection('users').doc(currentUser.uid).collection('transactions').orderBy('date', 'desc').get();
+        userData.transactions = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Load recurring
+        const recSnap = await db.collection('users').doc(currentUser.uid).collection('recurring').get();
+        userData.recurring = recSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Also save to localStorage as backup
+        localStorage.setItem('walletly_data', JSON.stringify(userData));
+
+    } catch (err) {
+        console.error('Error loading from cloud:', err);
+        // Fallback to localStorage
+        const local = localStorage.getItem('walletly_data');
+        if (local) userData = JSON.parse(local);
+    }
+}
+
+async function saveToCloud() {
+    if (!currentUser) return;
+
+    try {
+        // Save profile
+        await db.collection('users').doc(currentUser.uid).set({
+            name: userData.name,
+            email: currentUser.email,
+            currency: userData.currency,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Save wallets (batch)
+        const batch = db.batch();
+        for (const wallet of userData.wallets) {
+            const ref = db.collection('users').doc(currentUser.uid).collection('wallets').doc(wallet.id);
+            batch.set(ref, wallet);
+        }
+
+        // Save transactions (batch - limit 500 per batch)
+        for (const tx of userData.transactions.slice(0, 500)) {
+            const ref = db.collection('users').doc(currentUser.uid).collection('transactions').doc(tx.id);
+            batch.set(ref, tx);
+        }
+
+        // Save recurring
+        for (const rec of userData.recurring) {
+            const ref = db.collection('users').doc(currentUser.uid).collection('recurring').doc(rec.id);
+            batch.set(ref, rec);
+        }
+
+        await batch.commit();
+
+        // Also save to localStorage
+        localStorage.setItem('walletly_data', JSON.stringify(userData));
+
+    } catch (err) {
+        console.error('Error saving to cloud:', err);
+    }
+}
+
+function syncData() {
+    showToast('Menyinkronkan data...', '');
+    saveToCloud().then(() => {
+        showToast('Data tersinkron! ☁️', 'success');
+    }).catch(() => {
+        showToast('Gagal sinkron', 'error');
+    });
+}
+
+// ==================== APP INIT ====================
+function initApp() {
+    // Set current date for transaction
+    document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+
+    // Set filter month/year
+    const now = new Date();
+    document.getElementById('filterMonth').value = now.getMonth();
+    const yearSelect = document.getElementById('filterYear');
+    yearSelect.innerHTML = '';
+    for (let y = now.getFullYear(); y >= now.getFullYear() - 5; y--) {
+        yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+    }
+
+    // Set user info
+    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userName').textContent = userData.name || '-';
+
+    // Check recurring transactions
+    checkRecurring();
+
+    // Render everything
+    renderDashboard();
+    renderWallets();
+    renderCalendar();
+    renderReport();
+    loadTransactions();
+}
+
+// ==================== PAGE NAVIGATION ====================
+function switchPage(page) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // Show selected page
+    const pageMap = {
+        dashboard: { page: 'pageDashboard', nav: 0 },
+        transactions: { page: 'pageTransactions', nav: 1 },
+        wallet: { page: 'pageWallet', nav: 2 },
+        calendar: { page: 'pageCalendar', nav: 3 },
+        settings: { page: 'pageSettings', nav: 4 }
+    };
+
+    const target = pageMap[page];
+    if (target) {
+        document.getElementById(target.page).classList.add('active');
+        document.querySelectorAll('.nav-item')[target.nav].classList.add('active');
+    }
+
+    // Refresh data for specific pages
+    if (page === 'dashboard') renderDashboard();
+    if (page === 'wallet') renderWallets();
+    if (page === 'calendar') renderCalendar();
+    if (page === 'report') renderReport();
+    if (page === 'transactions') loadTransactions();
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
+    const monthTx = userData.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === month && d.getFullYear() === year;
+    });
+
+    const totalIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const totalExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const balance = userData.wallets.reduce((s, w) => s + w.balance, 0);
+
+    document.getElementById('totalBalance').textContent = formatMoney(balance);
+    document.getElementById('totalIncome').textContent = formatMoney(totalIncome);
+    document.getElementById('totalExpense').textContent = formatMoney(totalExpense);
+
+    // Recent transactions
+    const recent = userData.transactions.slice(0, 10);
+    const container = document.getElementById('recentTransactions');
+
+    if (recent.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada transaksi</p></div>';
+        return;
+    }
+
+    container.innerHTML = recent.map(tx => {
+        const cat = getCategoryInfo(tx.type, tx.category);
+        return `
+            <div class="transaction-item">
+                <div class="transaction-icon" style="background:${cat.color}20">
+                    ${cat.icon}
+                </div>
+                <div class="transaction-info">
+                    <div class="name">${tx.note || cat.label}</div>
+                    <div class="category">${cat.label} ${tx.isRecurring ? '<span class="badge badge-recurring">🔁 Berulang</span>' : ''}</div>
+                </div>
+                <div>
+                    <div class="transaction-amount ${tx.type}">
+                        ${tx.type === 'income' ? '+' : '-'} ${formatMoney(tx.amount)}
+                    </div>
+                    <div class="transaction-date">${formatDate(tx.date)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ==================== TRANSACTIONS ====================
+function openAddTransaction(type) {
+    currentTransactionType = type || 'income';
+    selectedCategory = '';
+    document.getElementById('txAmount').value = '';
+    document.getElementById('txNote').value = '';
+    document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('txRecurring').checked = false;
+
+    setTransactionType(currentTransactionType);
+    renderCategoryGrid();
+    loadWalletOptions();
+    openModal('addTransactionModal');
+}
+
+function setTransactionType(type) {
+    currentTransactionType = type;
+    document.querySelectorAll('#addTransactionModal .tab-btn').forEach(b => b.classList.remove('active'));
+    if (type === 'income') {
+        document.querySelector('.income-tab').classList.add('active');
+    } else {
+        document.querySelector('.expense-tab').classList.add('active');
+    }
+    selectedCategory = '';
+    renderCategoryGrid();
+}
+
+function renderCategoryGrid() {
+    const cats = categories[currentTransactionType];
+    const grid = document.getElementById('categoryGrid');
+    grid.innerHTML = cats.map(c => `
+        <div class="category-tag ${selectedCategory === c.id ? 'selected' : ''}" 
+             onclick="selectCategory('${c.id}')">
+            <span class="icon">${c.icon}</span>
+            <span class="label">${c.label}</span>
+        </div>
+    `).join('');
+}
+
+function selectCategory(id) {
+    selectedCategory = id;
+    renderCategoryGrid();
+}
+
+function loadWalletOptions() {
+    const select = document.getElementById('txWallet');
+    select.innerHTML = userData.wallets.map(w =>
+        `<option value="${w.id}">${w.icon} ${w.name}</option>`
+    ).join('');
+    if (userData.wallets.length === 0) {
+        select.innerHTML = '<option value="">Buat wallet dulu</option>';
+    }
+}
+
+async function saveTransaction() {
+    const amount = parseInt(document.getElementById('txAmount').value);
+    const note = document.getElementById('txNote').value.trim();
+    const date = document.getElementById('txDate').value;
+    const walletId = document.getElementById('txWallet').value;
+    const isRecurring = document.getElementById('txRecurring').checked;
+
+    if (!amount || amount <= 0) {
+        showToast('Masukkan jumlah yang valid', 'error');
+        return;
+    }
+    if (!selectedCategory) {
+        showToast('Pilih kategori', 'error');
+        return;
+    }
+    if (!walletId) {
+        showToast('Pilih wallet', 'error');
+        return;
+    }
+
+    const tx = {
+        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        type: currentTransactionType,
+        amount: amount,
+        category: selectedCategory,
+        note: note,
+        date: date,
+        walletId: walletId,
+        isRecurring: isRecurring,
+        createdAt: new Date().toISOString()
+    };
+
+    userData.transactions.unshift(tx);
+
+    // Update wallet balance
+    const wallet = userData.wallets.find(w => w.id === walletId);
+    if (wallet) {
+        if (currentTransactionType === 'income') {
+            wallet.balance += amount;
+        } else {
+            wallet.balance -= amount;
+        }
+    }
+
+    // Add recurring if checked
+    if (isRecurring) {
+        userData.recurring.push({
+            id: 'rec_' + Date.now(),
+            type: currentTransactionType,
+            amount: amount,
+            category: selectedCategory,
+            note: note,
+            day: new Date(date).getDate(),
+            walletId: walletId
+        });
+    }
+
+    closeModal('addTransactionModal');
+    showToast('Transaksi tersimpan! ✅', 'success');
+
+    // Save
+    renderDashboard();
+    saveToCloud();
+}
+
+function loadTransactions() {
+    const month = parseInt(document.getElementById('filterMonth').value);
+    const year = parseInt(document.getElementById('filterYear').value);
+
+    const filtered = userData.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === month && d.getFullYear() === year;
+    });
+
+    const container = document.getElementById('allTransactions');
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Tidak ada transaksi di bulan ini</p></div>';
+        return;
+    }
+
+    // Group by date
+    const grouped = {};
+    filtered.forEach(tx => {
+        if (!grouped[tx.date]) grouped[tx.date] = [];
+        grouped[tx.date].push(tx);
+    });
+
+    let html = '';
+    Object.keys(grouped).sort().reverse().forEach(date => {
+        html += `<div style="font-size:13px;font-weight:600;color:var(--gray-500);padding:12px 0 6px;">${formatDateFull(date)}</div>`;
+        grouped[date].forEach(tx => {
+            const cat = getCategoryInfo(tx.type, tx.category);
+            html += `
+                <div class="transaction-item" onclick="deleteTransaction('${tx.id}')" style="cursor:pointer" title="Klik untuk hapus">
+                    <div class="transaction-icon" style="background:${cat.color}20">
+                        ${cat.icon}
+                    </div>
+                    <div class="transaction-info">
+                        <div class="name">${tx.note || cat.label}</div>
+                        <div class="category">${cat.label} ${tx.isRecurring ? '<span class="badge badge-recurring">🔁</span>' : ''}</div>
+                    </div>
+                    <div>
+                        <div class="transaction-amount ${tx.type}">
+                            ${tx.type === 'income' ? '+' : '-'} ${formatMoney(tx.amount)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    container.innerHTML = html;
+}
+
+async function deleteTransaction(id) {
+    if (!confirm('Hapus transaksi ini?')) return;
+
+    const tx = userData.transactions.find(t => t.id === id);
+    if (tx) {
+        // Reverse wallet balance
+        const wallet = userData.wallets.find(w => w.id === tx.walletId);
+        if (wallet) {
+            if (tx.type === 'income') wallet.balance -= tx.amount;
+            else wallet.balance += tx.amount;
+        }
+    }
+
+    userData.transactions = userData.transactions.filter(t => t.id !== id);
+
+    // Delete from Firestore
+    if (currentUser) {
+        try {
+            await db.collection('users').doc(currentUser.uid).collection('transactions').doc(id).delete();
+        } catch (e) { /* ignore */ }
+    }
+
+    showToast('Transaksi dihapus', 'success');
+    loadTransactions();
+    renderDashboard();
+    saveToCloud();
+}
+
+// ==================== WALLETS ====================
+function renderWallets() {
+    const container = document.getElementById('walletList');
+    const totalBalance = userData.wallets.reduce((s, w) => s + w.balance, 0);
+
+    document.getElementById('walletTotalBalance').textContent = formatMoney(totalBalance);
+
+    if (userData.wallets.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">👛</div><p>Belum ada wallet</p></div>';
+        return;
+    }
+
+    container.innerHTML = userData.wallets.map(w => `
+        <div class="wallet-item" onclick="deleteWallet('${w.id}')" title="Klik untuk hapus">
+            <div class="wallet-icon" style="background:var(--primary-light)">${w.icon}</div>
+            <div class="wallet-info">
+                <div class="name">${w.name}</div>
+                <div class="balance">${formatMoney(w.balance)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openAddWallet() {
+    document.getElementById('walletName').value = '';
+    document.getElementById('walletBalance').value = '';
+    selectedWalletIcon = '💰';
+    openModal('addWalletModal');
+}
+
+function selectWalletIcon(el, icon) {
+    document.querySelectorAll('#addWalletModal .category-tag').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedWalletIcon = icon;
+}
+
+async function saveWallet() {
+    const name = document.getElementById('walletName').value.trim();
+    const balance = parseInt(document.getElementById('walletBalance').value) || 0;
+
+    if (!name) {
+        showToast('Masukkan nama wallet', 'error');
+        return;
+    }
+
+    const wallet = {
+        id: 'w_' + Date.now(),
+        name: name,
+        balance: balance,
+        icon: selectedWalletIcon,
+        createdAt: new Date().toISOString()
+    };
+
+    userData.wallets.push(wallet);
+    closeModal('addWalletModal');
+    showToast('Wallet ditambahkan! 👛', 'success');
+    renderWallets();
+    saveToCloud();
+}
+
+async function deleteWallet(id) {
+    if (!confirm('Hapus wallet ini? Data transaksi tetap tersimpan.')) return;
+    userData.wallets = userData.wallets.filter(w => w.id !== id);
+
+    if (currentUser) {
+        try {
+            await db.collection('users').doc(currentUser.uid).collection('wallets').doc(id).delete();
+        } catch (e) { /* ignore */ }
+    }
+
+    showToast('Wallet dihapus', 'success');
+    renderWallets();
+    saveToCloud();
+}
+
+// ==================== CALENDAR ====================
+function renderCalendar() {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const today = new Date();
+
+    document.getElementById('calendarMonthLabel').textContent =
+        getMonthName(month) + ' ' + year;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Get transactions for this month
+    const monthTx = userData.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === month && d.getFullYear() === year;
+    });
+
+    // Group by day
+    const dayData = {};
+    monthTx.forEach(tx => {
+        const day = new Date(tx.date).getDate();
+        if (!dayData[day]) dayData[day] = { income: 0, expense: 0 };
+        if (tx.type === 'income') dayData[day].income += tx.amount;
+        else dayData[day].expense += tx.amount;
+    });
+
+    let html = '';
+    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    days.forEach(d => html += `<div class="calendar-header-cell">${d}</div>`);
+
+    // Empty cells before first day
+    for (let i = 0; i < firstDay; i++) {
+        html += '<div class="calendar-cell"></div>';
+    }
+
+    // Day cells
+    for (let d = 1; d <= daysInMonth; d++) {
+        const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        const hasData = dayData[d];
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+        let amountHtml = '';
+        if (hasData) {
+            if (hasData.income > 0) amountHtml += `<div class="day-amount" style="color:var(--primary)">+${formatShort(hasData.income)}</div>`;
+            if (hasData.expense > 0) amountHtml += `<div class="day-amount" style="color:var(--danger)">-${formatShort(hasData.expense)}</div>`;
+        }
+
+        html += `
+            <div class="calendar-cell ${isToday ? 'today' : ''} ${hasData ? 'has-data' : ''}" 
+                 onclick="showDayDetail(${d}, '${dateStr}')">
+                <div class="date-num">${d}</div>
+                ${amountHtml}
+                <div class="dot"></div>
+            </div>
+        `;
+    }
+
+    document.getElementById('calendarGrid').innerHTML = html;
+}
+
+function changeMonth(delta) {
+    calendarDate.setMonth(calendarDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function showDayDetail(day, dateStr) {
+    const tx = userData.transactions.filter(t => t.date === dateStr);
+    const detail = document.getElementById('calendarDetail');
+    const title = document.getElementById('calendarDetailTitle');
+    const content = document.getElementById('calendarDetailContent');
+
+    title.textContent = `📅 ${formatDateFull(dateStr)}`;
+
+    if (tx.length === 0) {
+        content.innerHTML = '<div class="empty-state"><p>Tidak ada transaksi hari ini</p></div>';
+    } else {
+        const totalIn = tx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const totalOut = tx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+
+        content.innerHTML = `
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <div style="flex:1;background:var(--primary-light);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-size:12px;color:var(--gray-500)">Masuk</div>
+                    <div style="font-weight:700;color:var(--primary)">${formatMoney(totalIn)}</div>
+                </div>
+                <div style="flex:1;background:var(--danger-light);padding:12px;border-radius:8px;text-align:center;">
+                    <div style="font-size:12px;color:var(--gray-500)">Keluar</div>
+                    <div style="font-weight:700;color:var(--danger)">${formatMoney(totalOut)}</div>
+                </div>
+            </div>
+            ${tx.map(t => {
+                const cat = getCategoryInfo(t.type, t.category);
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-icon" style="background:${cat.color}20">${cat.icon}</div>
+                        <div class="transaction-info">
+                            <div class="name">${t.note || cat.label}</div>
+                            <div class="category">${cat.label}</div>
+                        </div>
+                        <div class="transaction-amount ${t.type}">
+                            ${t.type === 'income' ? '+' : '-'} ${formatMoney(t.amount)}
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        `;
+    }
+
+    detail.style.display = 'block';
+}
+
+// ==================== REPORT ====================
+function renderReport() {
+    const now = new Date();
+    const months = reportView === '6month' ? 6 : 12;
+    const chartData = [];
+
+    for (let i = months - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const month = d.getMonth();
+        const year = d.getFullYear();
+
+        const monthTx = userData.transactions.filter(t => {
+            const td = new Date(t.date);
+            return td.getMonth() === month && td.getFullYear() === year;
+        });
+
+        chartData.push({
+            label: getMonthName(month).substr(0, 3),
+            income: monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+            expense: monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+        });
+    }
+
+    // Render chart
+    const maxVal = Math.max(...chartData.map(d => Math.max(d.income, d.expense)), 1);
+    const container = document.getElementById('reportChart');
+
+    container.innerHTML = chartData.map(d => `
+        <div class="chart-bar-wrapper">
+            <div style="display:flex;gap:3px;align-items:flex-end;height:100%;">
+                <div class="chart-bar income-bar" style="height:${(d.income / maxVal) * 100}%"></div>
+                <div class="chart-bar expense-bar" style="height:${(d.expense / maxVal) * 100}%"></div>
+            </div>
+            <div class="chart-label">${d.label}</div>
+        </div>
+    `).join('');
+
+    // Category report (this month)
+    const currentMonthTx = userData.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.type === 'expense';
+    });
+
+    const catTotals = {};
+    currentMonthTx.forEach(tx => {
+        if (!catTotals[tx.category]) catTotals[tx.category] = 0;
+        catTotals[tx.category] += tx.amount;
+    });
+
+    const totalExpense = Object.values(catTotals).reduce((s, v) => s + v, 0);
+    const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+
+    const catContainer = document.getElementById('categoryReport');
+    if (sorted.length === 0) {
+        catContainer.innerHTML = '<div class="empty-state"><p>Belum ada pengeluaran bulan ini</p></div>';
+    } else {
+        catContainer.innerHTML = sorted.map(([catId, amount]) => {
+            const cat = getCategoryInfo('expense', catId);
+            const pct = totalExpense > 0 ? ((amount / totalExpense) * 100).toFixed(0) : 0;
+            return `
+                <div class="category-report-item">
+                    <div class="category-report-icon" style="background:${cat.color}20">${cat.icon}</div>
+                    <div class="category-report-info">
+                        <div class="name">${cat.label}</div>
+                        <div class="category-report-bar">
+                            <div class="fill" style="width:${pct}%;background:${cat.color}"></div>
+                        </div>
+                    </div>
+                    <div class="category-report-amount">${formatMoney(amount)}</div>
+                    <div class="category-report-percent">${pct}%</div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function setReportView(view, btn) {
+    reportView = view;
+    document.querySelectorAll('#pageReport .tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderReport();
+}
+
+// ==================== RECURRING ====================
+function checkRecurring() {
+    const today = new Date();
+    const dayOfMonth = today.getDate();
+
+    userData.recurring.forEach(rec => {
+        if (rec.day === dayOfMonth) {
+            // Check if already added today
+            const todayStr = today.toISOString().split('T')[0];
+            const exists = userData.transactions.some(t =>
+                t.isRecurring && t.category === rec.category && t.date === todayStr
+            );
+
+            if (!exists) {
+                // Auto-add recurring transaction
+                const tx = {
+                    id: 'tx_rec_' + Date.now(),
+                    type: rec.type,
+                    amount: rec.amount,
+                    category: rec.category,
+                    note: '(Auto) ' + rec.note,
+                    date: todayStr,
+                    walletId: rec.walletId,
+                    isRecurring: true,
+                    createdAt: new Date().toISOString()
+                };
+                userData.transactions.unshift(tx);
+
+                const wallet = userData.wallets.find(w => w.id === rec.walletId);
+                if (wallet) {
+                    if (rec.type === 'income') wallet.balance += rec.amount;
+                    else wallet.balance -= rec.amount;
+                }
+            }
+        }
+    });
+}
+
+// ==================== SETTINGS ====================
+function openEditProfile() {
+    document.getElementById('editName').value = userData.name;
+    document.getElementById('editCurrency').value = userData.currency;
+    openModal('editProfileModal');
+}
+
+async function saveProfile() {
+    userData.name = document.getElementById('editName').value.trim();
+    userData.currency = document.getElementById('editCurrency').value;
+    document.getElementById('userName').textContent = userData.name || '-';
+    closeModal('editProfileModal');
+    showToast('Profil tersimpan! ✅', 'success');
+    saveToCloud();
+}
+
+function exportData() {
+    const data = JSON.stringify(userData, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'walletly_backup_' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Data diexport! 📤', 'success');
+}
+
+function confirmReset() {
+    if (confirm('⚠️ Yakin mau reset SEMUA data lokal?\n\nData di Firebase tetap aman.')) {
+        if (confirm('Konfirmasi sekali lagi: Hapus semua data lokal?')) {
+            localStorage.removeItem('walletly_data');
+            userData = { name: userData.name, currency: userData.currency, wallets: [], transactions: [], recurring: [] };
+            initApp();
+            showToast('Data lokal direset', 'success');
+        }
+    }
+}
+
+// ==================== MODAL HELPERS ====================
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+
+// ==================== UTILITY FUNCTIONS ====================
+function formatMoney(amount) {
+    const sym = userData.currency === 'IDR' ? 'Rp ' : userData.currency === 'USD' ? '$ ' : userData.currency + ' ';
+    return sym + Math.abs(amount).toLocaleString('id-ID');
+}
+
+function formatShort(amount) {
+    if (amount >= 1000000) return (amount / 1000000).toFixed(1) + 'jt';
+    if (amount >= 1000) return (amount / 1000).toFixed(0) + 'rb';
+    return amount.toString();
+}
+
+function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.getDate() + '/' + (d.getMonth() + 1);
+}
+
+function formatDateFull(dateStr) {
+    const d = new Date(dateStr);
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function getMonthName(m) {
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return months[m];
+}
+
+function getCategoryInfo(type, catId) {
+    const cats = categories[type] || [];
+    return cats.find(c => c.id === catId) || { icon: '📦', label: 'Lainnya', color: '#6B7280' };
+}
+
+function showToast(msg, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast ' + type + ' show';
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+</script>
+
+</body>
+</html>
