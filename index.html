@@ -1609,8 +1609,8 @@
         </div>
 
         <div class="form-group">
-            <label>Tabungan Saat Ini (Rp)</label>
-            <input type="text" id="goalCurrent" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
+            <label>Sumber Tabungan (Wallet)</label>
+            <select id="goalWallet"></select>
         </div>
 
         <div class="form-group">
@@ -3245,7 +3245,9 @@ function renderSavingsGoals() {
     }
 
     container.innerHTML = goals.map(g => {
-        const pct = g.target > 0 ? Math.min(Math.round((g.current / g.target) * 100), 100) : 0;
+        const wallet = userData.wallets.find(w => w.id === g.walletId);
+        const current = wallet ? wallet.balance : 0;
+        const pct = g.target > 0 ? Math.min(Math.round((current / g.target) * 100), 100) : 0;
         const color = pct >= 100 ? 'var(--primary)' : pct >= 50 ? 'var(--blue)' : 'var(--warning)';
         let deadlineText = '';
         if (g.deadline) {
@@ -3260,7 +3262,7 @@ function renderSavingsGoals() {
                     <div class="goal-name">${g.icon} ${g.name}</div>
                     <div style="font-size:14px;font-weight:700;color:${color}">${pct}%</div>
                 </div>
-                <div class="goal-amounts">Terkumpul <span>${formatMoney(g.current)}</span> dari ${formatMoney(g.target)}</div>
+                <div class="goal-amounts">Terkumpul <span>${formatMoney(current)}</span> dari ${formatMoney(g.target)} ${wallet ? '· ' + wallet.icon + ' ' + wallet.name : ''}</div>
                 <div class="goal-bar-bg">
                     <div class="goal-bar-fill" style="width:${pct}%;background:${color}"></div>
                 </div>
@@ -3275,12 +3277,14 @@ function openAddGoal() {
     document.getElementById('goalId').value = '';
     document.getElementById('goalName').value = '';
     document.getElementById('goalTarget').value = '';
-    document.getElementById('goalCurrent').value = '0';
     document.getElementById('goalDeadline').value = '';
     document.getElementById('goalDeleteBtn').style.display = 'none';
     selectedGoalIcon = '🎯';
     document.querySelectorAll('#goalModal .category-tag').forEach(t => t.classList.remove('selected'));
     document.querySelector('#goalModal .category-tag[data-icon="🎯"]').classList.add('selected');
+    // Populate wallet select
+    const ws = document.getElementById('goalWallet');
+    ws.innerHTML = userData.wallets.map(w => `<option value="${w.id}">${w.icon} ${w.name} (${formatMoney(w.balance)})</option>`).join('');
     openModal('goalModal');
 }
 
@@ -3292,13 +3296,16 @@ function openEditGoal(id) {
     document.getElementById('goalId').value = goal.id;
     document.getElementById('goalName').value = goal.name;
     document.getElementById('goalTarget').value = goal.target.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    document.getElementById('goalCurrent').value = goal.current.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     document.getElementById('goalDeadline').value = goal.deadline || '';
     document.getElementById('goalDeleteBtn').style.display = 'block';
     selectedGoalIcon = goal.icon;
     document.querySelectorAll('#goalModal .category-tag').forEach(t => {
         t.classList.toggle('selected', t.dataset.icon === goal.icon);
     });
+    // Populate wallet select
+    const ws = document.getElementById('goalWallet');
+    ws.innerHTML = userData.wallets.map(w => `<option value="${w.id}">${w.icon} ${w.name} (${formatMoney(w.balance)})</option>`).join('');
+    if (goal.walletId) ws.value = goal.walletId;
     openModal('goalModal');
 }
 
@@ -3312,31 +3319,30 @@ function saveGoal() {
     const id = document.getElementById('goalId').value;
     const name = document.getElementById('goalName').value.trim();
     const target = parseFormattedNumber(document.getElementById('goalTarget').value);
-    const current = parseFormattedNumber(document.getElementById('goalCurrent').value);
+    const walletId = document.getElementById('goalWallet').value;
     const deadline = document.getElementById('goalDeadline').value;
 
     if (!name) { showToast('Masukkan nama target', 'error'); return; }
     if (!target || target <= 0) { showToast('Masukkan target nominal', 'error'); return; }
+    if (!walletId) { showToast('Pilih wallet', 'error'); return; }
 
     if (!userData.savingsGoals) userData.savingsGoals = [];
 
     if (id) {
-        // Edit existing
         const goal = userData.savingsGoals.find(g => g.id === id);
         if (goal) {
             goal.name = name;
             goal.target = target;
-            goal.current = current;
+            goal.walletId = walletId;
             goal.deadline = deadline;
             goal.icon = selectedGoalIcon;
         }
     } else {
-        // Add new
         userData.savingsGoals.push({
             id: 'goal_' + Date.now(),
             name: name,
             target: target,
-            current: current,
+            walletId: walletId,
             deadline: deadline,
             icon: selectedGoalIcon,
             createdAt: new Date().toISOString()
