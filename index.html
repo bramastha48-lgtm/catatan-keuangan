@@ -2016,6 +2016,11 @@ async function loadFromCloud() {
             const data = profileDoc.data();
             userData.name = data.name || currentUser.displayName || '';
             userData.currency = data.currency || 'IDR';
+            userData.appName = data.appName || 'Walletly';
+            userData.savingsGoals = data.savingsGoals || [];
+            userData.overtimeUid = data.overtimeUid || '';
+            userData.overtimeWalletId = data.overtimeWalletId || '';
+            userData.syncedOvertimePayouts = data.syncedOvertimePayouts || [];
         }
 
         // Load wallets
@@ -2050,6 +2055,11 @@ async function saveToCloud() {
             name: userData.name,
             email: currentUser.email,
             currency: userData.currency,
+            appName: userData.appName || 'Walletly',
+            savingsGoals: userData.savingsGoals || [],
+            overtimeUid: userData.overtimeUid || '',
+            overtimeWalletId: userData.overtimeWalletId || '',
+            syncedOvertimePayouts: userData.syncedOvertimePayouts || [],
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
