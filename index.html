@@ -40,14 +40,49 @@
             --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
             --radius: 12px;
             --radius-sm: 8px;
+            --bg: #F9FAFB;
+            --card-bg: white;
+            --text: #1F2937;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --input-bg: white;
+        }
+
+        .dark {
+            --gray-50: #1F2937;
+            --gray-100: #374151;
+            --gray-200: #4B5563;
+            --gray-300: #6B7280;
+            --gray-400: #9CA3AF;
+            --gray-500: #D1D5DB;
+            --gray-600: #E5E7EB;
+            --gray-700: #F3F4F6;
+            --gray-800: #F9FAFB;
+            --gray-900: #FFFFFF;
+            --primary-light: #064E3B;
+            --danger-light: #7F1D1D;
+            --warning-light: #78350F;
+            --blue-light: #1E3A5F;
+            --purple-light: #4C1D95;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.3);
+            --bg: #111827;
+            --card-bg: #1F2937;
+            --text: #F9FAFB;
+            --text-secondary: #9CA3AF;
+            --border: #374151;
+            --input-bg: #374151;
+        }
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--gray-50);
-            color: var(--gray-800);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             padding-bottom: 70px;
+            transition: background 0.3s, color 0.3s;
         }
 
         /* Auth Screen */
@@ -61,7 +96,7 @@
         }
 
         .auth-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 40px 30px;
             width: 100%;
@@ -106,12 +141,13 @@
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid var(--gray-200);
+            border: 2px solid var(--border);
             border-radius: var(--radius-sm);
             font-size: 15px;
             transition: border-color 0.2s;
             outline: none;
-            background: white;
+            background: var(--input-bg);
+            color: var(--text);
         }
 
         .form-group input:focus, .form-group select:focus {
@@ -148,7 +184,7 @@
         }
 
         .btn-outline {
-            background: white;
+            background: var(--card-bg);
             color: var(--primary);
             border: 2px solid var(--primary);
         }
@@ -229,9 +265,71 @@
             transform: translateY(0);
         }
 
+        .goal-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .goal-item:last-child {
+            border-bottom: none;
+        }
+
+        .goal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .goal-name {
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .goal-amounts {
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-bottom: 8px;
+        }
+
+        .goal-amounts span {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .goal-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: var(--gray-200);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .goal-bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .goal-percent {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .goal-deadline {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+
         /* Header */
         .app-header {
-            background: white;
+            background: var(--card-bg);
             padding: 16px 20px;
             display: flex;
             align-items: center;
@@ -279,7 +377,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
+            background: var(--card-bg);
             display: flex;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 100;
@@ -327,7 +425,7 @@
 
         /* Cards */
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--radius);
             padding: 20px;
             box-shadow: var(--shadow);
@@ -458,7 +556,7 @@
         }
 
         .quick-action {
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--radius);
             padding: 16px 8px;
             text-align: center;
@@ -539,7 +637,7 @@
         }
 
         .modal {
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px 20px 0 0;
             width: 100%;
             max-width: 500px;
@@ -585,8 +683,8 @@
         .tab-btn {
             flex: 1;
             padding: 10px;
-            border: 2px solid var(--gray-200);
-            background: white;
+            border: 2px solid var(--border);
+            background: var(--card-bg);
             border-radius: var(--radius-sm);
             font-size: 14px;
             font-weight: 600;
@@ -1121,6 +1219,14 @@
         </div>
 
         <div class="card">
+            <div class="card-title">🎯 Target Tabungan</div>
+            <div id="savingsGoals"></div>
+            <button class="btn btn-outline" onclick="openAddGoal()" style="margin-top:12px;width:100%">
+                ➕ Tambah Target
+            </button>
+        </div>
+
+        <div class="card">
             <div class="card-title">📋 Transaksi Terakhir</div>
             <div id="recentTransactions">
                 <div class="empty-state">
@@ -1136,7 +1242,7 @@
         <div class="card">
             <div class="card-title">📅 Filter</div>
             <div style="display:flex;gap:8px;">
-                <select id="filterMonth" onchange="loadTransactions()" style="flex:1;padding:10px;border:2px solid var(--gray-200);border-radius:8px;font-size:14px;">
+                <select id="filterMonth" onchange="loadTransactions()" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:14px;">
                     <option value="0">Januari</option>
                     <option value="1">Februari</option>
                     <option value="2">Maret</option>
@@ -1150,7 +1256,7 @@
                     <option value="10">November</option>
                     <option value="11">Desember</option>
                 </select>
-                <select id="filterYear" onchange="loadTransactions()" style="flex:1;padding:10px;border:2px solid var(--gray-200);border-radius:8px;font-size:14px;">
+                <select id="filterYear" onchange="loadTransactions()" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:14px;">
                 </select>
             </div>
         </div>
@@ -1262,6 +1368,10 @@
 
         <div class="card">
             <div class="card-title">⚙️ Pengaturan</div>
+            <div class="settings-item" onclick="toggleDarkMode()" style="cursor:pointer">
+                <div class="label"><span class="icon">🌙</span> Mode Gelap</div>
+                <div id="darkModeStatus" style="font-size:13px;color:var(--gray-400)">Mati</div>
+            </div>
             <div class="settings-item" onclick="openEditProfile()" style="cursor:pointer">
                 <div class="label"><span class="icon">✏️</span> Edit Profil</div>
                 <div class="arrow">›</div>
@@ -1508,6 +1618,57 @@
         <div style="display:flex;gap:8px;">
             <button class="btn btn-danger" onclick="deleteEditedTx()" style="flex:0">🗑️</button>
             <button class="btn btn-primary" onclick="saveEditTx()" style="flex:1">💾 Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Savings Goal Modal -->
+<div id="goalModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="goalModalTitle">🎯 Target Tabungan</h3>
+            <button class="modal-close" onclick="closeModal('goalModal')">✕</button>
+        </div>
+
+        <input type="hidden" id="goalId">
+
+        <div class="form-group">
+            <label>Nama Target</label>
+            <input type="text" id="goalName" placeholder="Contoh: Dana Darurat, Liburan">
+        </div>
+
+        <div class="form-group">
+            <label>Target Nominal (Rp)</label>
+            <input type="text" id="goalTarget" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
+        </div>
+
+        <div class="form-group">
+            <label>Tabungan Saat Ini (Rp)</label>
+            <input type="text" id="goalCurrent" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
+        </div>
+
+        <div class="form-group">
+            <label>Deadline (opsional)</label>
+            <input type="date" id="goalDeadline">
+        </div>
+
+        <div class="form-group">
+            <label>Ikon</label>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <span class="category-tag selected" onclick="selectGoalIcon(this, '🎯')" data-icon="🎯"><span class="icon">🎯</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '🏖️')" data-icon="🏖️"><span class="icon">🏖️</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '🚗')" data-icon="🚗"><span class="icon">🚗</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '🏠')" data-icon="🏠"><span class="icon">🏠</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '💻')" data-icon="💻"><span class="icon">💻</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '🎓')" data-icon="🎓"><span class="icon">🎓</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '💍')" data-icon="💍"><span class="icon">💍</span></span>
+                <span class="category-tag" onclick="selectGoalIcon(this, '📱')" data-icon="📱"><span class="icon">📱</span></span>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-danger" onclick="deleteGoal()" style="flex:0" id="goalDeleteBtn" style="display:none">🗑️</button>
+            <button class="btn btn-primary" onclick="saveGoal()" style="flex:1">💾 Simpan Target</button>
         </div>
     </div>
 </div>
@@ -1848,6 +2009,7 @@ function logout() {
 
 // ==================== AUTH STATE OBSERVER ====================
 auth.onAuthStateChanged(async (user) => {
+    applyDarkMode();
     if (user) {
         currentUser = user;
         document.getElementById('authScreen').style.display = 'none';
@@ -1990,10 +2152,12 @@ function initApp() {
     document.getElementById('userName').textContent = userData.name || '-';
 
     // Check recurring transactions
+    applyDarkMode();
     checkRecurring();
 
     // Render everything
     renderDashboard();
+    renderSavingsGoals();
     renderWallets();
     updateOvertimeSyncStatus();
     startOvertimeListener();
@@ -2024,7 +2188,7 @@ function switchPage(page) {
     }
 
     // Refresh data for specific pages
-    if (page === 'dashboard') renderDashboard();
+    if (page === 'dashboard') { renderDashboard(); renderSavingsGoals(); }
     if (page === 'wallet') { renderWallets(); updateOvertimeSyncStatus(); }
     if (page === 'calendar') renderCalendar();
     if (page === 'report') renderReport();
@@ -3057,6 +3221,152 @@ function checkRecurring() {
             }
         }
     });
+}
+
+// ==================== DARK MODE ====================
+function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark');
+    localStorage.setItem('walletly_dark', isDark ? '1' : '0');
+    userData.darkMode = isDark;
+    document.getElementById('darkModeStatus').textContent = isDark ? 'Aktif' : 'Mati';
+    autoSave();
+}
+
+function applyDarkMode() {
+    const saved = localStorage.getItem('walletly_dark');
+    if (saved === '1' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+    }
+    const el = document.getElementById('darkModeStatus');
+    if (el) el.textContent = document.body.classList.contains('dark') ? 'Aktif' : 'Mati';
+}
+
+// ==================== SAVINGS GOALS ====================
+let selectedGoalIcon = '🎯';
+
+function renderSavingsGoals() {
+    const container = document.getElementById('savingsGoals');
+    const goals = userData.savingsGoals || [];
+
+    if (goals.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding:20px"><div class="icon">🎯</div><p>Belum ada target tabungan</p></div>';
+        return;
+    }
+
+    container.innerHTML = goals.map(g => {
+        const pct = g.target > 0 ? Math.min(Math.round((g.current / g.target) * 100), 100) : 0;
+        const color = pct >= 100 ? 'var(--primary)' : pct >= 50 ? 'var(--blue)' : 'var(--warning)';
+        let deadlineText = '';
+        if (g.deadline) {
+            const d = new Date(g.deadline);
+            const now = new Date();
+            const daysLeft = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+            deadlineText = daysLeft > 0 ? `⏱️ ${daysLeft} hari lagi` : daysLeft === 0 ? '⏱️ Hari ini!' : '⏱️ Lewat deadline';
+        }
+        return `
+            <div class="goal-item" onclick="openEditGoal('${g.id}')" style="cursor:pointer">
+                <div class="goal-header">
+                    <div class="goal-name">${g.icon} ${g.name}</div>
+                    <div style="font-size:14px;font-weight:700;color:${color}">${pct}%</div>
+                </div>
+                <div class="goal-amounts">Terkumpul <span>${formatMoney(g.current)}</span> dari ${formatMoney(g.target)}</div>
+                <div class="goal-bar-bg">
+                    <div class="goal-bar-fill" style="width:${pct}%;background:${color}"></div>
+                </div>
+                ${deadlineText ? `<div class="goal-deadline">${deadlineText}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function openAddGoal() {
+    document.getElementById('goalModalTitle').textContent = '🎯 Target Baru';
+    document.getElementById('goalId').value = '';
+    document.getElementById('goalName').value = '';
+    document.getElementById('goalTarget').value = '';
+    document.getElementById('goalCurrent').value = '0';
+    document.getElementById('goalDeadline').value = '';
+    document.getElementById('goalDeleteBtn').style.display = 'none';
+    selectedGoalIcon = '🎯';
+    document.querySelectorAll('#goalModal .category-tag').forEach(t => t.classList.remove('selected'));
+    document.querySelector('#goalModal .category-tag[data-icon="🎯"]').classList.add('selected');
+    openModal('goalModal');
+}
+
+function openEditGoal(id) {
+    const goal = (userData.savingsGoals || []).find(g => g.id === id);
+    if (!goal) return;
+
+    document.getElementById('goalModalTitle').textContent = '✏️ Edit Target';
+    document.getElementById('goalId').value = goal.id;
+    document.getElementById('goalName').value = goal.name;
+    document.getElementById('goalTarget').value = goal.target.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    document.getElementById('goalCurrent').value = goal.current.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    document.getElementById('goalDeadline').value = goal.deadline || '';
+    document.getElementById('goalDeleteBtn').style.display = 'block';
+    selectedGoalIcon = goal.icon;
+    document.querySelectorAll('#goalModal .category-tag').forEach(t => {
+        t.classList.toggle('selected', t.dataset.icon === goal.icon);
+    });
+    openModal('goalModal');
+}
+
+function selectGoalIcon(el, icon) {
+    document.querySelectorAll('#goalModal .category-tag').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedGoalIcon = icon;
+}
+
+function saveGoal() {
+    const id = document.getElementById('goalId').value;
+    const name = document.getElementById('goalName').value.trim();
+    const target = parseFormattedNumber(document.getElementById('goalTarget').value);
+    const current = parseFormattedNumber(document.getElementById('goalCurrent').value);
+    const deadline = document.getElementById('goalDeadline').value;
+
+    if (!name) { showToast('Masukkan nama target', 'error'); return; }
+    if (!target || target <= 0) { showToast('Masukkan target nominal', 'error'); return; }
+
+    if (!userData.savingsGoals) userData.savingsGoals = [];
+
+    if (id) {
+        // Edit existing
+        const goal = userData.savingsGoals.find(g => g.id === id);
+        if (goal) {
+            goal.name = name;
+            goal.target = target;
+            goal.current = current;
+            goal.deadline = deadline;
+            goal.icon = selectedGoalIcon;
+        }
+    } else {
+        // Add new
+        userData.savingsGoals.push({
+            id: 'goal_' + Date.now(),
+            name: name,
+            target: target,
+            current: current,
+            deadline: deadline,
+            icon: selectedGoalIcon,
+            createdAt: new Date().toISOString()
+        });
+    }
+
+    closeModal('goalModal');
+    showToast('Target tabungan disimpan! 🎯', 'success');
+    renderSavingsGoals();
+    autoSave();
+}
+
+function deleteGoal() {
+    const id = document.getElementById('goalId').value;
+    if (!id) return;
+    if (!confirm('Hapus target ini?')) return;
+    userData.savingsGoals = (userData.savingsGoals || []).filter(g => g.id !== id);
+    closeModal('goalModal');
+    showToast('Target dihapus', 'success');
+    renderSavingsGoals();
+    autoSave();
 }
 
 // ==================== SETTINGS ====================
