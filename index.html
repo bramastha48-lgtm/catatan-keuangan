@@ -439,6 +439,10 @@
             color: var(--danger);
         }
 
+        .transaction-amount.transfer {
+            color: var(--blue);
+        }
+
         .transaction-date {
             font-size: 11px;
             color: var(--gray-400);
@@ -1122,9 +1126,14 @@
         <div class="card">
             <div class="card-title">👛 Daftar Wallet</div>
             <div id="walletList"></div>
-            <button class="btn btn-outline" onclick="openAddWallet()" style="margin-top:12px">
-                ➕ Tambah Wallet
-            </button>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn btn-outline" onclick="openAddWallet()" style="flex:1">
+                    ➕ Tambah Wallet
+                </button>
+                <button class="btn btn-primary" onclick="openTransfer()" style="flex:1">
+                    🔄 Transfer
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1322,6 +1331,38 @@
         </div>
 
         <button class="btn btn-primary" onclick="saveWallet()">💾 Simpan Wallet</button>
+    </div>
+</div>
+
+<!-- Transfer Modal -->
+<div id="transferModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>🔄 Transfer Antar Wallet</h3>
+            <button class="modal-close" onclick="closeModal('transferModal')">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label>Dari Wallet</label>
+            <select id="transferFrom"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Ke Wallet</label>
+            <select id="transferTo"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Jumlah (Rp)</label>
+            <input type="text" id="transferAmount" placeholder="0" inputmode="numeric" oninput="formatInputNumber(this)">
+        </div>
+
+        <div class="form-group">
+            <label>Keterangan (opsional)</label>
+            <input type="text" id="transferNote" placeholder="Contoh: Pindah ke GoPay">
+        </div>
+
+        <button class="btn btn-primary" onclick="doTransfer()">🔄 Transfer Sekarang</button>
     </div>
 </div>
 
@@ -1730,6 +1771,12 @@ function renderDashboard() {
 
     container.innerHTML = recent.map(tx => {
         const cat = getCategoryInfo(tx.type, tx.category);
+        let subLabel = cat.label;
+        if (tx.type === 'transfer') {
+            const wf = userData.wallets.find(w => w.id === tx.walletFrom);
+            const wt = userData.wallets.find(w => w.id === tx.walletTo);
+            subLabel = `${wf ? wf.icon+' '+wf.name : '?'} → ${wt ? wt.icon+' '+wt.name : '?'}`;
+        }
         return `
             <div class="transaction-item">
                 <div class="transaction-icon" style="background:${cat.color}20">
@@ -1737,11 +1784,11 @@ function renderDashboard() {
                 </div>
                 <div class="transaction-info">
                     <div class="name">${tx.note || cat.label}</div>
-                    <div class="category">${cat.label} ${tx.isRecurring ? '<span class="badge badge-recurring">🔁 Berulang</span>' : ''}</div>
+                    <div class="category">${subLabel} ${tx.isRecurring ? '<span class="badge badge-recurring">🔁 Berulang</span>' : ''}</div>
                 </div>
                 <div>
                     <div class="transaction-amount ${tx.type}">
-                        ${tx.type === 'income' ? '+' : '-'} ${formatMoney(tx.amount)}
+                        ${tx.type === 'transfer' ? '🔄' : tx.type === 'income' ? '+' : '-'} ${formatMoney(tx.amount)}
                     </div>
                     <div class="transaction-date">${formatDate(tx.date)}</div>
                 </div>
@@ -1897,6 +1944,12 @@ function loadTransactions() {
         html += `<div style="font-size:13px;font-weight:600;color:var(--gray-500);padding:12px 0 6px;">${formatDateFull(date)}</div>`;
         grouped[date].forEach(tx => {
             const cat = getCategoryInfo(tx.type, tx.category);
+            let subLabel = cat.label;
+            if (tx.type === 'transfer') {
+                const wf = userData.wallets.find(w => w.id === tx.walletFrom);
+                const wt = userData.wallets.find(w => w.id === tx.walletTo);
+                subLabel = `${wf ? wf.icon+' '+wf.name : '?'} → ${wt ? wt.icon+' '+wt.name : '?'}`;
+            }
             html += `
                 <div class="transaction-item" onclick="deleteTransaction('${tx.id}')" style="cursor:pointer" title="Klik untuk hapus">
                     <div class="transaction-icon" style="background:${cat.color}20">
@@ -1904,11 +1957,11 @@ function loadTransactions() {
                     </div>
                     <div class="transaction-info">
                         <div class="name">${tx.note || cat.label}</div>
-                        <div class="category">${cat.label} ${tx.isRecurring ? '<span class="badge badge-recurring">🔁</span>' : ''}</div>
+                        <div class="category">${subLabel} ${tx.isRecurring ? '<span class="badge badge-recurring">🔁</span>' : ''}</div>
                     </div>
                     <div>
                         <div class="transaction-amount ${tx.type}">
-                            ${tx.type === 'income' ? '+' : '-'} ${formatMoney(tx.amount)}
+                            ${tx.type === 'transfer' ? '🔄' : tx.type === 'income' ? '+' : '-'} ${formatMoney(tx.amount)}
                         </div>
                     </div>
                 </div>
@@ -1925,10 +1978,17 @@ async function deleteTransaction(id) {
     const tx = userData.transactions.find(t => t.id === id);
     if (tx) {
         // Reverse wallet balance
-        const wallet = userData.wallets.find(w => w.id === tx.walletId);
-        if (wallet) {
-            if (tx.type === 'income') wallet.balance -= tx.amount;
-            else wallet.balance += tx.amount;
+        if (tx.type === 'transfer') {
+            const fromW = userData.wallets.find(w => w.id === tx.walletFrom);
+            const toW = userData.wallets.find(w => w.id === tx.walletTo);
+            if (fromW) fromW.balance += tx.amount;
+            if (toW) toW.balance -= tx.amount;
+        } else {
+            const wallet = userData.wallets.find(w => w.id === tx.walletId);
+            if (wallet) {
+                if (tx.type === 'income') wallet.balance -= tx.amount;
+                else wallet.balance += tx.amount;
+            }
         }
     }
 
@@ -2019,6 +2079,87 @@ async function deleteWallet(id) {
 
     showToast('Wallet dihapus', 'success');
     renderWallets();
+    autoSave();
+}
+
+// ==================== TRANSFER ====================
+function populateTransferSelects() {
+    const fromSelect = document.getElementById('transferFrom');
+    const toSelect = document.getElementById('transferTo');
+    const options = userData.wallets.map(w => `<option value="${w.id}">${w.icon} ${w.name} (${formatMoney(w.balance)})</option>`).join('');
+    fromSelect.innerHTML = options;
+    toSelect.innerHTML = options;
+}
+
+function openTransfer() {
+    if (userData.wallets.length < 2) {
+        showToast('Butuh minimal 2 wallet untuk transfer', 'error');
+        return;
+    }
+    populateTransferSelects();
+    document.getElementById('transferAmount').value = '';
+    document.getElementById('transferNote').value = '';
+    // Set different default for 'to'
+    const toSelect = document.getElementById('transferTo');
+    if (toSelect.options.length > 1) toSelect.selectedIndex = 1;
+    openModal('transferModal');
+}
+
+async function doTransfer() {
+    const fromId = document.getElementById('transferFrom').value;
+    const toId = document.getElementById('transferTo').value;
+    const amount = parseFormattedNumber(document.getElementById('transferAmount').value);
+    const note = document.getElementById('transferNote').value.trim();
+
+    if (!fromId || !toId) {
+        showToast('Pilih wallet asal dan tujuan', 'error');
+        return;
+    }
+    if (fromId === toId) {
+        showToast('Wallet asal dan tujuan tidak boleh sama', 'error');
+        return;
+    }
+    if (!amount || amount <= 0) {
+        showToast('Masukkan jumlah yang valid', 'error');
+        return;
+    }
+
+    const fromWallet = userData.wallets.find(w => w.id === fromId);
+    const toWallet = userData.wallets.find(w => w.id === toId);
+
+    if (!fromWallet || !toWallet) {
+        showToast('Wallet tidak ditemukan', 'error');
+        return;
+    }
+    if (fromWallet.balance < amount) {
+        showToast(`Saldo ${fromWallet.name} tidak cukup (${formatMoney(fromWallet.balance)})`, 'error');
+        return;
+    }
+
+    // Update balances
+    fromWallet.balance -= amount;
+    toWallet.balance += amount;
+
+    // Record transfer transaction
+    const tx = {
+        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        type: 'transfer',
+        amount: amount,
+        category: 'transfer',
+        note: note || `${fromWallet.icon} ${fromWallet.name} → ${toWallet.icon} ${toWallet.name}`,
+        date: new Date().toISOString().split('T')[0],
+        walletFrom: fromId,
+        walletTo: toId,
+        walletId: fromId,
+        createdAt: new Date().toISOString()
+    };
+
+    userData.transactions.unshift(tx);
+
+    closeModal('transferModal');
+    showToast(`Transfer berhasil! ${fromWallet.icon}→${toWallet.icon} ${formatMoney(amount)}`, 'success');
+    renderWallets();
+    renderDashboard();
     autoSave();
 }
 
@@ -2115,15 +2256,21 @@ function showDayDetail(day, dateStr) {
             </div>
             ${tx.map(t => {
                 const cat = getCategoryInfo(t.type, t.category);
+                let subLabel = cat.label;
+                if (t.type === 'transfer') {
+                    const wf = userData.wallets.find(w => w.id === t.walletFrom);
+                    const wt = userData.wallets.find(w => w.id === t.walletTo);
+                    subLabel = `${wf ? wf.icon+' '+wf.name : '?'} → ${wt ? wt.icon+' '+wt.name : '?'}`;
+                }
                 return `
                     <div class="transaction-item">
                         <div class="transaction-icon" style="background:${cat.color}20">${cat.icon}</div>
                         <div class="transaction-info">
                             <div class="name">${t.note || cat.label}</div>
-                            <div class="category">${cat.label}</div>
+                            <div class="category">${subLabel}</div>
                         </div>
                         <div class="transaction-amount ${t.type}">
-                            ${t.type === 'income' ? '+' : '-'} ${formatMoney(t.amount)}
+                            ${t.type === 'transfer' ? '🔄' : t.type === 'income' ? '+' : '-'} ${formatMoney(t.amount)}
                         </div>
                     </div>
                 `;
@@ -2350,6 +2497,7 @@ function getMonthName(m) {
 }
 
 function getCategoryInfo(type, catId) {
+    if (type === 'transfer') return { icon: '🔄', label: 'Transfer', color: '#3B82F6' };
     const cats = categories[type] || [];
     return cats.find(c => c.id === catId) || { icon: '📦', label: 'Lainnya', color: '#6B7280' };
 }
