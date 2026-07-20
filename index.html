@@ -175,6 +175,54 @@
             text-decoration: underline;
         }
 
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .toggle-password:hover {
+            opacity: 1;
+        }
+
+        .sync-indicator {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 150;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .sync-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* Header */
         .app-header {
             background: white;
@@ -905,6 +953,9 @@
 </head>
 <body>
 
+<!-- Sync Indicator -->
+<div id="syncIndicator" class="sync-indicator">☁️ Menyinkronkan...</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 
@@ -920,12 +971,15 @@
         <!-- Login Form -->
         <div id="loginForm">
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="nama@email.com">
+                <label>Username</label>
+                <input type="text" id="loginUsername" placeholder="Contoh: bram">
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="Masukkan password">
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" placeholder="Masukkan password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁️</button>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="login()">🔑 Login</button>
             <div class="auth-toggle">
@@ -940,12 +994,15 @@
                 <input type="text" id="regName" placeholder="Nama kamu">
             </div>
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="regEmail" placeholder="nama@email.com">
+                <label>Username</label>
+                <input type="text" id="regUsername" placeholder="Contoh: bram">
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="regPassword" placeholder="Min. 6 karakter">
+                <div class="password-wrapper">
+                    <input type="password" id="regPassword" placeholder="Min. 6 karakter">
+                    <button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</button>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="register()">📝 Daftar</button>
             <div class="auth-toggle">
@@ -1365,12 +1422,31 @@ function showRegister() {
     document.getElementById('registerForm').style.display = 'block';
 }
 
+function toEmail(username) {
+    return username.toLowerCase().replace(/[^a-z0-9._-]/g, '') + '@walletly.app';
+}
+
+function toUsername(email) {
+    return email.replace('@walletly.app', '');
+}
+
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
+
 async function register() {
     const name = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
+    const username = document.getElementById('regUsername').value.trim();
     const password = document.getElementById('regPassword').value;
 
-    if (!name || !email || !password) {
+    if (!name || !username || !password) {
         showToast('Semua field wajib diisi', 'error');
         return;
     }
@@ -1378,12 +1454,17 @@ async function register() {
         showToast('Password minimal 6 karakter', 'error');
         return;
     }
+    if (!/^[a-z0-9._-]+$/.test(username.toLowerCase())) {
+        showToast('Username hanya boleh huruf, angka, titik, strip', 'error');
+        return;
+    }
+
+    const email = toEmail(username);
 
     try {
         const cred = await auth.createUserWithEmailAndPassword(email, password);
         await cred.user.updateProfile({ displayName: name });
 
-        // Save user profile to Firestore
         await db.collection('users').doc(cred.user.uid).set({
             name: name,
             email: email,
@@ -1393,24 +1474,34 @@ async function register() {
 
         showToast('Registrasi berhasil! 🎉', 'success');
     } catch (err) {
-        showToast(err.message, 'error');
+        if (err.code === 'auth/email-already-in-use') {
+            showToast('Username sudah dipakai', 'error');
+        } else {
+            showToast(err.message, 'error');
+        }
     }
 }
 
 async function login() {
-    const email = document.getElementById('loginEmail').value.trim();
+    const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
 
-    if (!email || !password) {
-        showToast('Email dan password wajib diisi', 'error');
+    if (!username || !password) {
+        showToast('Username dan password wajib diisi', 'error');
         return;
     }
+
+    const email = toEmail(username);
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
         showToast('Login berhasil! 👋', 'success');
     } catch (err) {
-        showToast(err.message, 'error');
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+            showToast('Username atau password salah', 'error');
+        } else {
+            showToast(err.message, 'error');
+        }
     }
 }
 
@@ -1512,11 +1603,35 @@ async function saveToCloud() {
     }
 }
 
+function showSyncIndicator() {
+    const el = document.getElementById('syncIndicator');
+    el.classList.add('show');
+}
+
+function hideSyncIndicator() {
+    const el = document.getElementById('syncIndicator');
+    el.classList.remove('show');
+}
+
+async function autoSave() {
+    if (!currentUser) return;
+    showSyncIndicator();
+    try {
+        await saveToCloud();
+    } catch (e) {
+        console.error('Auto-save error:', e);
+    }
+    hideSyncIndicator();
+}
+
 function syncData() {
     showToast('Menyinkronkan data...', '');
+    showSyncIndicator();
     saveToCloud().then(() => {
+        hideSyncIndicator();
         showToast('Data tersinkron! ☁️', 'success');
     }).catch(() => {
+        hideSyncIndicator();
         showToast('Gagal sinkron', 'error');
     });
 }
@@ -1536,7 +1651,7 @@ function initApp() {
     }
 
     // Set user info
-    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userEmail').textContent = '@' + toUsername(currentUser.email);
     document.getElementById('userName').textContent = userData.name || '-';
 
     // Check recurring transactions
@@ -1745,7 +1860,7 @@ async function saveTransaction() {
 
     // Save
     renderDashboard();
-    saveToCloud();
+    autoSave();
 }
 
 function loadTransactions() {
@@ -1823,7 +1938,7 @@ async function deleteTransaction(id) {
     showToast('Transaksi dihapus', 'success');
     loadTransactions();
     renderDashboard();
-    saveToCloud();
+    autoSave();
 }
 
 // ==================== WALLETS ====================
@@ -1883,7 +1998,7 @@ async function saveWallet() {
     closeModal('addWalletModal');
     showToast('Wallet ditambahkan! 👛', 'success');
     renderWallets();
-    saveToCloud();
+    autoSave();
 }
 
 async function deleteWallet(id) {
@@ -1898,7 +2013,7 @@ async function deleteWallet(id) {
 
     showToast('Wallet dihapus', 'success');
     renderWallets();
-    saveToCloud();
+    autoSave();
 }
 
 // ==================== CALENDAR ====================
@@ -2147,7 +2262,7 @@ async function saveProfile() {
     document.getElementById('userName').textContent = userData.name || '-';
     closeModal('editProfileModal');
     showToast('Profil tersimpan! ✅', 'success');
-    saveToCloud();
+    autoSave();
 }
 
 function exportData() {
