@@ -2233,7 +2233,12 @@ function getPayPeriod(dateStr) {
     firstFri.setDate(wednesday.getDate() + daysToFri);
     const payoutDate = new Date(firstFri);
     payoutDate.setDate(firstFri.getDate() + 7);
-    const fmt = d2 => d2.toISOString().split('T')[0];
+    const fmt = d2 => {
+        const y = d2.getFullYear();
+        const m = String(d2.getMonth() + 1).padStart(2, '0');
+        const dd = String(d2.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dd}`;
+    };
     return { start: fmt(thursday), end: fmt(wednesday), payout: fmt(payoutDate) };
 }
 
@@ -2244,7 +2249,7 @@ function getPayPeriodsForMonth(yearMonth) {
     const periods = [];
     const seen = new Set();
     for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const period = getPayPeriod(dateStr);
         const key = period.start + '_' + period.end;
         if (!seen.has(key)) { seen.add(key); periods.push(period); }
