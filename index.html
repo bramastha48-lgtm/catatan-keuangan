@@ -993,7 +993,7 @@
             </div>
             <button class="btn btn-primary" onclick="login()">🔑 Login</button>
             <div class="auth-toggle">
-                Belum punya akun? <a onclick="showRegister()">Daftar</a>
+                <a onclick="openForgotPassword()">Lupa Password?</a> · Belum punya akun? <a onclick="showRegister()">Daftar</a>
             </div>
         </div>
 
@@ -1014,10 +1014,60 @@
                     <button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</button>
                 </div>
             </div>
+            <div class="form-group">
+                <label>Pertanyaan Keamanan (untuk reset password)</label>
+                <select id="regSecurityQ">
+                    <option value="pet">Nama hewan peliharaan pertama?</option>
+                    <option value="mother">Nama ibu kandung?</option>
+                    <option value="city">Kota kelahiran?</option>
+                    <option value="school">Nama SD pertama?</option>
+                    <option value="food">Makanan favorit?</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Jawaban Keamanan</label>
+                <input type="text" id="regSecurityA" placeholder="Jawaban (huruf kecil semua)">
+            </div>
             <button class="btn btn-primary" onclick="register()">📝 Daftar</button>
             <div class="auth-toggle">
                 Sudah punya akun? <a onclick="showLogin()">Login</a>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotPwModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>🔐 Reset Password</h3>
+            <button class="modal-close" onclick="closeModal('forgotPwModal')">✕</button>
+        </div>
+
+        <div id="forgotPwStep1">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="forgotUsername" placeholder="Masukkan username kamu">
+            </div>
+            <button class="btn btn-primary" onclick="forgotPwCheckUser()">➡️ Lanjut</button>
+        </div>
+
+        <div id="forgotPwStep2" style="display:none">
+            <div style="background:var(--blue-light);padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px">
+                Pertanyaan: <strong id="forgotQuestion"></strong>
+            </div>
+            <div class="form-group">
+                <label>Jawaban</label>
+                <input type="text" id="forgotAnswer" placeholder="Jawaban (huruf kecil)">
+            </div>
+            <div class="form-group">
+                <label>Password Baru</label>
+                <div class="password-wrapper">
+                    <input type="password" id="forgotNewPw" placeholder="Min. 6 karakter">
+                    <button type="button" class="toggle-password" onclick="togglePassword('forgotNewPw', this)">👁️</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="forgotPwReset()">🔑 Reset Password</button>
         </div>
     </div>
 </div>
@@ -1600,6 +1650,8 @@ async function register() {
     const name = document.getElementById('regName').value.trim();
     const username = document.getElementById('regUsername').value.trim();
     const password = document.getElementById('regPassword').value;
+    const securityQ = document.getElementById('regSecurityQ').value;
+    const securityA = document.getElementById('regSecurityA').value.trim().toLowerCase();
 
     if (!name || !username || !password) {
         showToast('Semua field wajib diisi', 'error');
@@ -1613,6 +1665,10 @@ async function register() {
         showToast('Username hanya boleh huruf, angka, titik, strip', 'error');
         return;
     }
+    if (!securityA) {
+        showToast('Jawaban keamanan wajib diisi', 'error');
+        return;
+    }
 
     const email = toEmail(username);
 
@@ -1624,6 +1680,9 @@ async function register() {
             name: name,
             email: email,
             currency: 'IDR',
+            securityQ: securityQ,
+            securityA: securityA,
+            pwBackup: password,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
@@ -1650,13 +1709,133 @@ async function login() {
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
+        // Keep pwBackup in sync
+        try {
+            const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+            if (!snapshot.empty && snapshot.docs[0].data().pwBackup !== password) {
+                await db.collection('users').doc(snapshot.docs[0].id).update({ pwBackup: password });
+            }
+        } catch (e) { /* ignore */ }
         showToast('Login berhasil! 👋', 'success');
     } catch (err) {
+        // Try Firestore pwBackup as fallback
+        try {
+            const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+            if (!snapshot.empty) {
+                const ud = snapshot.docs[0].data();
+                const uid = snapshot.docs[0].id;
+                if (ud.pwBackup && ud.pwBackup !== password) {
+                    // Try signing in with pwBackup
+                    const cred = await auth.signInWithEmailAndPassword(email, ud.pwBackup);
+                    // Update Auth password to what user typed
+                    await cred.user.updatePassword(password);
+                    // Update pwBackup in Firestore
+                    await db.collection('users').doc(uid).update({ pwBackup: password });
+                    showToast('Login berhasil! 👋', 'success');
+                    return;
+                } else if (ud.pwBackup && ud.pwBackup === password) {
+                    // pwBackup matches but Auth failed - Auth might be corrupted
+                    // Try to delete and recreate
+                    try {
+                        const cred = await auth.createUserWithEmailAndPassword(email, password);
+                        await cred.user.updateProfile({ displayName: ud.name || '' });
+                        showToast('Login berhasil! 👋', 'success');
+                        return;
+                    } catch (eCreate) {
+                        if (eCreate.code === 'auth/email-already-in-use') {
+                            // Auth has the user but pw is different - shouldn't happen
+                            showToast('Akun bermasalah. Hubungi admin.', 'error');
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (e2) {
+            console.error('pwBackup check error:', e2);
+        }
+
         if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
             showToast('Username atau password salah', 'error');
         } else {
             showToast(err.message, 'error');
         }
+    }
+}
+
+// ==================== FORGOT PASSWORD ====================
+const securityQuestions = {
+    pet: 'Nama hewan peliharaan pertama?',
+    mother: 'Nama ibu kandung?',
+    city: 'Kota kelahiran?',
+    school: 'Nama SD pertama?',
+    food: 'Makanan favorit?'
+};
+
+function openForgotPassword() {
+    document.getElementById('forgotUsername').value = '';
+    document.getElementById('forgotAnswer').value = '';
+    document.getElementById('forgotNewPw').value = '';
+    document.getElementById('forgotPwStep1').style.display = 'block';
+    document.getElementById('forgotPwStep2').style.display = 'none';
+    openModal('forgotPwModal');
+}
+
+async function forgotPwCheckUser() {
+    const username = document.getElementById('forgotUsername').value.trim();
+    if (!username) { showToast('Masukkan username', 'error'); return; }
+
+    const email = toEmail(username);
+
+    try {
+        // Find user by email in Firestore
+        const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+        if (snapshot.empty) {
+            showToast('Username tidak ditemukan', 'error');
+            return;
+        }
+
+        const userData2 = snapshot.docs[0].data();
+        const qKey = userData2.securityQ;
+        const question = securityQuestions[qKey] || 'Pertanyaan tidak ditemukan';
+
+        document.getElementById('forgotQuestion').textContent = question;
+        document.getElementById('forgotPwStep1').style.display = 'none';
+        document.getElementById('forgotPwStep2').style.display = 'block';
+
+        // Store for later use
+        window._forgotPwEmail = email;
+        window._forgotPwAnswer = userData2.securityA;
+        window._forgotPwUid = snapshot.docs[0].id;
+
+    } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+    }
+}
+
+async function forgotPwReset() {
+    const answer = document.getElementById('forgotAnswer').value.trim().toLowerCase();
+    const newPw = document.getElementById('forgotNewPw').value;
+
+    if (!answer) { showToast('Masukkan jawaban', 'error'); return; }
+    if (!newPw || newPw.length < 6) { showToast('Password baru minimal 6 karakter', 'error'); return; }
+
+    if (answer !== window._forgotPwAnswer) {
+        showToast('Jawaban salah!', 'error');
+        return;
+    }
+
+    try {
+        // Update password in Firestore (pwBackup)
+        // On next login, code will use this to sign in and update Firebase Auth
+        await db.collection('users').doc(window._forgotPwUid).update({
+            pwBackup: newPw,
+            resetAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        closeModal('forgotPwModal');
+        showToast('Password berhasil direset! Sekarang login dengan password baru.', 'success');
+    } catch (err) {
+        showToast('Error: ' + err.message, 'error');
     }
 }
 
