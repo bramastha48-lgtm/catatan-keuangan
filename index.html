@@ -49,15 +49,15 @@
         }
 
         .dark {
-            --gray-50: #1F2937;
-            --gray-100: #374151;
-            --gray-200: #4B5563;
-            --gray-300: #6B7280;
-            --gray-400: #9CA3AF;
-            --gray-500: #D1D5DB;
-            --gray-600: #E5E7EB;
-            --gray-700: #F3F4F6;
-            --gray-800: #F9FAFB;
+            --gray-50: #1E293B;
+            --gray-100: #334155;
+            --gray-200: #475569;
+            --gray-300: #94A3B8;
+            --gray-400: #CBD5E1;
+            --gray-500: #E2E8F0;
+            --gray-600: #F1F5F9;
+            --gray-700: #F8FAFC;
+            --gray-800: #FFFFFF;
             --gray-900: #FFFFFF;
             --primary-light: #064E3B;
             --danger-light: #7F1D1D;
@@ -67,12 +67,186 @@
             --shadow: 0 1px 3px rgba(0,0,0,0.3);
             --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
             --shadow-lg: 0 10px 15px rgba(0,0,0,0.3);
-            --bg: #111827;
-            --card-bg: #1F2937;
-            --text: #F9FAFB;
-            --text-secondary: #9CA3AF;
-            --border: #374151;
-            --input-bg: #374151;
+            --bg: #0F172A;
+            --card-bg: #1E293B;
+            --text: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --input-bg: #334155;
+        }
+
+        .dark * {
+            color: var(--text) !important;
+        }
+
+        .dark .balance-card *,
+        .dark .balance-card {
+            color: white !important;
+        }
+
+        .dark .btn-primary,
+        .dark .btn-primary * {
+            color: white !important;
+        }
+
+        .dark .btn-danger,
+        .dark .btn-danger * {
+            color: white !important;
+        }
+
+        .dark .btn-outline {
+            color: var(--primary) !important;
+        }
+
+        .dark .transaction-amount.income {
+            color: var(--primary) !important;
+        }
+
+        .dark .transaction-amount.expense {
+            color: var(--danger) !important;
+        }
+
+        .dark .transaction-amount.transfer {
+            color: var(--blue) !important;
+        }
+
+        .dark .tab-btn.active {
+            color: var(--primary-dark) !important;
+        }
+
+        .dark .tab-btn.expense-tab.active {
+            color: var(--danger) !important;
+        }
+
+        .dark .auth-card input,
+        .dark .auth-card select {
+            color: #1F2937 !important;
+            background: white !important;
+        }
+
+        .dark .form-group label {
+            color: var(--gray-400) !important;
+        }
+
+        .dark .card-title {
+            color: var(--gray-400) !important;
+        }
+
+        .dark .settings-item .label {
+            color: var(--text) !important;
+        }
+
+        .dark .settings-item .arrow {
+            color: var(--gray-400) !important;
+        }
+
+        .dark .nav-item {
+            color: var(--gray-400) !important;
+        }
+
+        .dark .nav-item.active {
+            color: var(--primary) !important;
+        }
+
+        .dark .balance-label,
+        .dark .balance-item .label {
+            color: rgba(255,255,255,0.9) !important;
+        }
+
+        .dark .transaction-info .category {
+            color: var(--text-secondary) !important;
+        }
+
+        .dark .transaction-date {
+            color: var(--text-secondary) !important;
+        }
+
+        .dark .goal-amounts {
+            color: var(--text-secondary) !important;
+        }
+
+        .dark .goal-amounts span {
+            color: var(--primary) !important;
+        }
+
+        .dark .goal-deadline {
+            color: var(--text-secondary) !important;
+        }
+
+        .dark .empty-state {
+            color: var(--text-secondary) !important;
+        }
+
+        .dark .auth-card {
+            color: #1F2937 !important;
+        }
+
+        .dark .auth-card h1,
+        .dark .auth-card p,
+        .dark .auth-card label,
+        .dark .auth-toggle,
+        .dark .auth-toggle a {
+            color: #1F2937 !important;
+        }
+
+        .dark .modal {
+            background: var(--card-bg) !important;
+            color: var(--text) !important;
+        }
+
+        .dark .modal input,
+        .dark .modal select,
+        .dark .modal textarea {
+            color: var(--text) !important;
+            background: var(--input-bg) !important;
+        }
+
+        .dark .modal-close {
+            background: var(--gray-100) !important;
+        }
+
+        .dark .category-tag {
+            background: var(--gray-100) !important;
+            color: var(--text) !important;
+        }
+
+        .dark .info-box {
+            background: var(--gray-100) !important;
+            color: var(--text) !important;
+        }
+
+        .dark .bottom-nav {
+            background: var(--card-bg) !important;
+        }
+
+        .dark .app-header {
+            background: var(--card-bg) !important;
+        }
+
+        .dark .app-header h2 {
+            color: var(--primary) !important;
+        }
+
+        .dark .toast {
+            background: var(--gray-100) !important;
+            color: var(--text) !important;
+        }
+
+        .dark .header-btn {
+            background: var(--gray-100) !important;
+        }
+
+        .dark select option {
+            background: var(--card-bg) !important;
+            color: var(--text) !important;
+        }
+
+        .dark .wallet-item {
+            background: var(--gray-100) !important;
+        }
+
+        .dark .chart-label {
+            color: var(--text-secondary) !important;
         }
         }
 
@@ -121,7 +295,7 @@
         }
 
         .auth-logo p {
-            color: var(--gray-500);
+            color: var(--text-secondary);
             font-size: 14px;
             margin-top: 5px;
         }
@@ -134,7 +308,7 @@
             display: block;
             font-size: 14px;
             font-weight: 600;
-            color: var(--gray-700);
+            color: var(--text);
             margin-bottom: 6px;
         }
 
@@ -203,7 +377,7 @@
             text-align: center;
             margin-top: 20px;
             font-size: 14px;
-            color: var(--gray-500);
+            color: var(--text-secondary);
         }
 
         .auth-toggle a {
@@ -291,7 +465,7 @@
 
         .goal-amounts {
             font-size: 13px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             margin-bottom: 8px;
         }
 
@@ -323,7 +497,7 @@
 
         .goal-deadline {
             font-size: 11px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
@@ -390,7 +564,7 @@
             align-items: center;
             padding: 8px 0;
             cursor: pointer;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             font-size: 11px;
             font-weight: 500;
             transition: color 0.2s;
@@ -435,7 +609,7 @@
         .card-title {
             font-size: 14px;
             font-weight: 600;
-            color: var(--gray-500);
+            color: var(--text-secondary);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -519,7 +693,7 @@
 
         .transaction-info .category {
             font-size: 13px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             margin-top: 2px;
         }
 
@@ -543,7 +717,7 @@
 
         .transaction-date {
             font-size: 11px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             text-align: right;
         }
 
@@ -578,7 +752,7 @@
         .quick-action .label {
             font-size: 12px;
             font-weight: 500;
-            color: var(--gray-600);
+            color: var(--text);
         }
 
         /* Category Tags */
@@ -615,7 +789,7 @@
             font-size: 11px;
             font-weight: 500;
             text-align: center;
-            color: var(--gray-600);
+            color: var(--text);
         }
 
         /* Modal */
@@ -747,7 +921,7 @@
 
         .wallet-info .balance {
             font-size: 13px;
-            color: var(--gray-500);
+            color: var(--text-secondary);
         }
 
         /* Calendar */
@@ -762,7 +936,7 @@
             text-align: center;
             font-size: 12px;
             font-weight: 600;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             padding: 8px 0;
         }
 
@@ -804,7 +978,7 @@
 
         .calendar-cell .day-amount {
             font-size: 9px;
-            color: var(--gray-500);
+            color: var(--text-secondary);
             margin-top: 2px;
         }
 
@@ -867,7 +1041,7 @@
 
         .chart-label {
             font-size: 10px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             margin-top: 6px;
         }
 
@@ -897,7 +1071,7 @@
         }
 
         .settings-item .arrow {
-            color: var(--gray-400);
+            color: var(--text-secondary);
         }
 
         /* Toast */
@@ -933,7 +1107,7 @@
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
         }
 
         .empty-state .icon {
@@ -972,7 +1146,7 @@
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: var(--gray-500);
+            color: var(--text-secondary);
         }
 
         .legend-dot {
@@ -1035,7 +1209,7 @@
 
         .category-report-percent {
             font-size: 11px;
-            color: var(--gray-400);
+            color: var(--text-secondary);
             margin-left: 12px;
             min-width: 35px;
             text-align: right;
@@ -1294,8 +1468,8 @@
 
         <div class="card">
             <div class="card-title">⏰ Sync Uang Lembur</div>
-            <p style="font-size:13px;color:var(--gray-500);margin-bottom:12px;">Tarik data dari aplikasi Lembur sebagai pemasukan otomatis</p>
-            <div id="overtimeSyncStatus" style="font-size:13px;color:var(--gray-400);margin-bottom:12px;">Belum terhubung</div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Tarik data dari aplikasi Lembur sebagai pemasukan otomatis</p>
+            <div id="overtimeSyncStatus" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Belum terhubung</div>
             <div style="display:flex;gap:8px;">
                 <button class="btn btn-outline" onclick="setupOvertimeSync()" style="flex:1" id="otSetupBtn">
                     ⚙️ Setup
@@ -1370,7 +1544,7 @@
             <div class="card-title">⚙️ Pengaturan</div>
             <div class="settings-item" onclick="toggleDarkMode()" style="cursor:pointer">
                 <div class="label"><span class="icon">🌙</span> Mode Gelap</div>
-                <div id="darkModeStatus" style="font-size:13px;color:var(--gray-400)">Mati</div>
+                <div id="darkModeStatus" style="font-size:13px;color:var(--text-secondary)">Mati</div>
             </div>
             <div class="settings-item" onclick="openEditProfile()" style="cursor:pointer">
                 <div class="label"><span class="icon">✏️</span> Edit Profil</div>
@@ -1391,7 +1565,7 @@
             <button class="btn btn-danger" onclick="confirmReset()">
                 🗑️ Reset Semua Data
             </button>
-            <p style="font-size:12px;color:var(--gray-400);margin-top:8px;text-align:center;">
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:8px;text-align:center;">
                 Data di Firebase tetap aman, hanya data lokal yang direset
             </p>
         </div>
@@ -2395,7 +2569,7 @@ function loadTransactions() {
 
     let html = '';
     Object.keys(grouped).sort().reverse().forEach(date => {
-        html += `<div style="font-size:13px;font-weight:600;color:var(--gray-500);padding:12px 0 6px;">${formatDateFull(date)}</div>`;
+        html += `<div style="font-size:13px;font-weight:600;color:var(--text-secondary);padding:12px 0 6px;">${formatDateFull(date)}</div>`;
         grouped[date].forEach(tx => {
             const cat = getCategoryInfo(tx.type, tx.category);
             let subLabel = cat.label;
@@ -3067,11 +3241,11 @@ function showDayDetail(day, dateStr) {
         content.innerHTML = `
             <div style="display:flex;gap:12px;margin-bottom:16px;">
                 <div style="flex:1;background:var(--primary-light);padding:12px;border-radius:8px;text-align:center;">
-                    <div style="font-size:12px;color:var(--gray-500)">Masuk</div>
+                    <div style="font-size:12px;color:var(--text-secondary)">Masuk</div>
                     <div style="font-weight:700;color:var(--primary)">${formatMoney(totalIn)}</div>
                 </div>
                 <div style="flex:1;background:var(--danger-light);padding:12px;border-radius:8px;text-align:center;">
-                    <div style="font-size:12px;color:var(--gray-500)">Keluar</div>
+                    <div style="font-size:12px;color:var(--text-secondary)">Keluar</div>
                     <div style="font-weight:700;color:var(--danger)">${formatMoney(totalOut)}</div>
                 </div>
             </div>
