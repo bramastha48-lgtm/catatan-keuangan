@@ -3,7 +3,7 @@
     "short_name": "Walletly",
     "description": "Kelola keuanganmu dengan mudah",
     "start_url": "./index.html",
-    "display": "standalone",
+    "display": "minimal-ui",
     "background_color": "#ffffff",
     "theme_color": "#10B981",
     "orientation": "portrait",
