@@ -1135,6 +1135,20 @@
                 </button>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-title">⏰ Sync Uang Lembur</div>
+            <p style="font-size:13px;color:var(--gray-500);margin-bottom:12px;">Tarik data dari aplikasi Lembur sebagai pemasukan otomatis</p>
+            <div id="overtimeSyncStatus" style="font-size:13px;color:var(--gray-400);margin-bottom:12px;">Belum terhubung</div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-outline" onclick="setupOvertimeSync()" style="flex:1" id="otSetupBtn">
+                    ⚙️ Setup
+                </button>
+                <button class="btn btn-primary" onclick="syncOvertime()" style="flex:1" id="otSyncBtn" disabled>
+                    🔄 Sync Sekarang
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ========== PAGE: CALENDAR ========== -->
@@ -1366,6 +1380,35 @@
     </div>
 </div>
 
+<!-- Overtime Sync Setup Modal -->
+<div id="overtimeSetupModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>⏰ Setup Sync Lembur</h3>
+            <button class="modal-close" onclick="closeModal('overtimeSetupModal')">✕</button>
+        </div>
+
+        <div style="background:var(--blue-light);padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--gray-700)">
+            <strong>Cara mendapatkan User ID:</strong><br>
+            1. Buka aplikasi <b>Lembur</b><br>
+            2. Klik ⚙️ Pengaturan<br>
+            3. Salin <b>User ID</b> yang tampil di sana
+        </div>
+
+        <div class="form-group">
+            <label>User ID Aplikasi Lembur</label>
+            <input type="text" id="overtimeUid" placeholder="Tempel User ID di sini">
+        </div>
+
+        <div class="form-group">
+            <label>Wallet Tujuan Pemasukan</label>
+            <select id="overtimeWallet"></select>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveOvertimeSetup()">💾 Simpan & Hubungkan</button>
+    </div>
+</div>
+
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal-overlay">
     <div class="modal">
@@ -1413,6 +1456,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Secondary Firebase for Overtime app
+const overtimeFirebaseConfig = {
+    apiKey: "AIzaSyAGQ9HIMQ1anidONGVtnlct6-Vy4RgKwwQ",
+    authDomain: "lemburku-app-58ab9.firebaseapp.com",
+    projectId: "lemburku-app-58ab9",
+    storageBucket: "lemburku-app-58ab9.firebasestorage.app",
+    messagingSenderId: "554408869078",
+    appId: "1:554408869078:web:0a7a15f7a2411499c29d77"
+};
+const overtimeApp = firebase.initializeApp(overtimeFirebaseConfig, 'overtime');
+const overtimeDb = overtimeApp.firestore();
 
 // ==================== GLOBAL STATE ====================
 let currentUser = null;
@@ -1707,6 +1762,7 @@ function initApp() {
     // Render everything
     renderDashboard();
     renderWallets();
+    updateOvertimeSyncStatus();
     renderCalendar();
     renderReport();
     loadTransactions();
@@ -1735,7 +1791,7 @@ function switchPage(page) {
 
     // Refresh data for specific pages
     if (page === 'dashboard') renderDashboard();
-    if (page === 'wallet') renderWallets();
+    if (page === 'wallet') { renderWallets(); updateOvertimeSyncStatus(); }
     if (page === 'calendar') renderCalendar();
     if (page === 'report') renderReport();
     if (page === 'transactions') loadTransactions();
@@ -2161,6 +2217,215 @@ async function doTransfer() {
     renderWallets();
     renderDashboard();
     autoSave();
+}
+
+// ==================== OVERTIME SYNC ====================
+function getPayPeriod(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const day = d.getDay();
+    const daysFromThu = (day + 3) % 7;
+    const thursday = new Date(d);
+    thursday.setDate(d.getDate() - daysFromThu);
+    const wednesday = new Date(thursday);
+    wednesday.setDate(thursday.getDate() + 6);
+    const daysToFri = (5 - wednesday.getDay() + 7) % 7;
+    const firstFri = new Date(wednesday);
+    firstFri.setDate(wednesday.getDate() + daysToFri);
+    const payoutDate = new Date(firstFri);
+    payoutDate.setDate(firstFri.getDate() + 7);
+    const fmt = d2 => d2.toISOString().split('T')[0];
+    return { start: fmt(thursday), end: fmt(wednesday), payout: fmt(payoutDate) };
+}
+
+function getPayPeriodsForMonth(yearMonth) {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
+    const periods = [];
+    const seen = new Set();
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const period = getPayPeriod(dateStr);
+        const key = period.start + '_' + period.end;
+        if (!seen.has(key)) { seen.add(key); periods.push(period); }
+    }
+    return periods;
+}
+
+function calcOvertimeEarning(salary, record) {
+    if (!record || !record.present) return { overtime: 0, meal: 0 };
+    const hourlyRate = salary / 173;
+    let overtimePay = 0;
+    let mealPay = 0;
+
+    if (record.type === 'weekday') {
+        if (record.overtimeEnd && record.overtimeEnd !== 'none') {
+            const otStartMin = 17 * 60;
+            const breakStart = 18 * 60;
+            const breakEnd = 18 * 60 + 30;
+            const parts = record.overtimeEnd.split(':');
+            const otEndMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            let effectiveMin = 0;
+            let current = otStartMin;
+            while (current < otEndMin) {
+                const nextBlock = Math.min(current + 30, otEndMin);
+                const blockDur = nextBlock - current;
+                if (current >= breakStart && current < breakEnd) {
+                    const overlap = Math.min(nextBlock, breakEnd) - Math.max(current, breakStart);
+                    effectiveMin += blockDur - overlap;
+                } else if (current < breakEnd && nextBlock > breakStart) {
+                    const overlap = Math.min(nextBlock, breakEnd) - Math.max(current, breakStart);
+                    effectiveMin += blockDur - overlap;
+                } else {
+                    effectiveMin += blockDur;
+                }
+                current = nextBlock;
+            }
+            const totalHours = effectiveMin / 60;
+            const firstHour = Math.min(totalHours, 1);
+            const remainingHours = Math.max(totalHours - 1, 0);
+            overtimePay = (firstHour * hourlyRate * 1.5) + (remainingHours * hourlyRate * 2);
+        }
+        mealPay = record.mealAllowance || 30000;
+    } else {
+        // weekend/holiday
+        const startParts = (record.weekendStart || '08:00').split(':');
+        const endParts = (record.weekendEnd || '17:00').split(':');
+        const startMin = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+        const endMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+        const grossMin = endMin - startMin - 60 - 30; // subtract breaks
+        const totalHours = Math.max(grossMin / 60, 0);
+        const first8 = Math.min(totalHours, 8);
+        const extra = Math.max(totalHours - 8, 0);
+        overtimePay = (first8 * hourlyRate * 2) + (extra * hourlyRate * 3);
+        mealPay = record.mealAllowance || 30000;
+    }
+    return { overtime: Math.round(overtimePay), meal: Math.round(mealPay) };
+}
+
+function setupOvertimeSync() {
+    // Populate wallet select
+    const select = document.getElementById('overtimeWallet');
+    select.innerHTML = userData.wallets.map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+    // Load saved UID
+    const savedUid = userData.overtimeUid || '';
+    document.getElementById('overtimeUid').value = savedUid;
+    if (savedUid && userData.wallets.length > 0) {
+        const savedWallet = userData.overtimeWalletId || '';
+        if (savedWallet) select.value = savedWallet;
+    }
+    openModal('overtimeSetupModal');
+}
+
+function saveOvertimeSetup() {
+    const uid = document.getElementById('overtimeUid').value.trim();
+    const walletId = document.getElementById('overtimeWallet').value;
+    if (!uid) { showToast('Masukkan User ID', 'error'); return; }
+    if (!walletId) { showToast('Pilih wallet tujuan', 'error'); return; }
+    userData.overtimeUid = uid;
+    userData.overtimeWalletId = walletId;
+    closeModal('overtimeSetupModal');
+    updateOvertimeSyncStatus();
+    autoSave();
+    showToast('Sync Lembur terhubung! ✅', 'success');
+}
+
+function updateOvertimeSyncStatus() {
+    const statusEl = document.getElementById('overtimeSyncStatus');
+    const syncBtn = document.getElementById('otSyncBtn');
+    if (userData.overtimeUid && userData.overtimeWalletId) {
+        const wallet = userData.wallets.find(w => w.id === userData.overtimeWalletId);
+        statusEl.textContent = `Terhubung ke User: ${userData.overtimeUid.substring(0, 8)}... → ${wallet ? wallet.icon + ' ' + wallet.name : '?'}`;
+        statusEl.style.color = 'var(--primary)';
+        syncBtn.disabled = false;
+    } else {
+        statusEl.textContent = 'Belum terhubung';
+        statusEl.style.color = 'var(--gray-400)';
+        syncBtn.disabled = true;
+    }
+}
+
+async function syncOvertime() {
+    const uid = userData.overtimeUid;
+    const walletId = userData.overtimeWalletId;
+    if (!uid || !walletId) { showToast('Setup dulu sync lembur', 'error'); return; }
+    const wallet = userData.wallets.find(w => w.id === walletId);
+    if (!wallet) { showToast('Wallet tujuan tidak ditemukan', 'error'); return; }
+
+    showToast('Mengambil data lembur...', '');
+
+    try {
+        // Read overtime data from its Firebase
+        const doc = await overtimeDb.collection('users').doc(uid).get();
+        if (!doc.exists) {
+            showToast('Data lembur tidak ditemukan. Cek User ID.', 'error');
+            return;
+        }
+        const otData = doc.data();
+        const attendance = otData.attendance || {};
+        const salary = otData.profile?.salary || 0;
+
+        if (!salary) { showToast('Gaji di app Lembur belum diisi', 'error'); return; }
+
+        // Get all pay periods that have data
+        const periodMap = {};
+        for (const [dateStr, record] of Object.entries(attendance)) {
+            if (!record.present) continue;
+            const period = getPayPeriod(dateStr);
+            const key = period.start + '_' + period.end;
+            if (!periodMap[key]) periodMap[key] = { ...period, overtime: 0, meal: 0 };
+            const earning = calcOvertimeEarning(salary, record);
+            periodMap[key].overtime += earning.overtime;
+            periodMap[key].meal += earning.meal;
+        }
+
+        // Check which payouts already synced
+        const syncedPayouts = userData.syncedOvertimePayouts || [];
+        let newCount = 0;
+        let totalNew = 0;
+
+        for (const [key, period] of Object.entries(periodMap)) {
+            const total = period.overtime + period.meal;
+            if (total <= 0) continue;
+            if (syncedPayouts.includes(key)) continue; // already synced
+
+            // Create income transaction for this payout
+            const tx = {
+                id: 'ot_' + key + '_' + Date.now(),
+                type: 'income',
+                amount: total,
+                category: 'salary',
+                note: `💰 Lembur ${period.start} s/d ${period.end}`,
+                date: period.payout,
+                walletId: walletId,
+                createdAt: new Date().toISOString(),
+                source: 'overtime_sync'
+            };
+            userData.transactions.unshift(tx);
+            wallet.balance += total;
+
+            syncedPayouts.push(key);
+            newCount++;
+            totalNew += total;
+        }
+
+        userData.syncedOvertimePayouts = syncedPayouts;
+
+        if (newCount === 0) {
+            showToast('Tidak ada data lembur baru untuk disync', '');
+        } else {
+            showToast(`Berhasil sync ${newCount} periode lembur! +${formatMoney(totalNew)} 🎉`, 'success');
+        }
+
+        renderDashboard();
+        renderWallets();
+        loadTransactions();
+        autoSave();
+
+    } catch (err) {
+        console.error('Overtime sync error:', err);
+        showToast('Gagal mengambil data lembur: ' + err.message, 'error');
+    }
 }
 
 // ==================== CALENDAR ====================
